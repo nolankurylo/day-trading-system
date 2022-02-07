@@ -1,1 +1,1 @@
-This is the console application used test loads on the day trading system. 
+This is the console application will use loadfiles on the day trading system to test performance. 
