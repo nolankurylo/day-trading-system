@@ -6,9 +6,10 @@ DROP TABLE IF EXISTS sells;
 
 create table users (
   user_id SERIAL, 
-  user_name varchar(100), 
-  user_password varchar(100),
-  user_email varchar(100),
+  user_name varchar(100) NOT NULL, 
+  user_password varchar(100) NOT NULL,
+  user_email varchar(100) NOT NULL,
+  role varchar(100) NOT NULL default 'trader',
   PRIMARY KEY(user_id)
 );
 
@@ -69,3 +70,6 @@ create table transactions(
       FOREIGN KEY(user_id) 
          REFERENCES users(user_id)
 );
+
+INSERT INTO users (user_name, user_password, user_email, role)
+VALUES ('admin', 'nalt123', 'test@yahoo.ca', 'admin');
