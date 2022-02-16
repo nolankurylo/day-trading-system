@@ -1,9 +1,12 @@
-FROM public.ecr.aws/lambda/python:3.9
+FROM node:17
 
-COPY app.py requirements.txt ./
+WORKDIR /usr/src/app
 
-RUN python3.9 -m pip install -r requirements.txt -t .
+COPY package*.json ./
 
+RUN npm install
 
-# Command can be overwritten by providing a different command in the template directly.
-CMD ["app.lambda_handler"]
+COPY . .
+
+EXPOSE 3000
+CMD [ "node", "index.js" ]
