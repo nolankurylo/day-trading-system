@@ -1,7 +1,3 @@
 server/node-ec2/package-lock.json
 server/node-ec2/node_modules
 server/package-lock.json
-console/__init__.py
-console/app.py
-console/ECRCommands.txt
-console/requirements.txt
