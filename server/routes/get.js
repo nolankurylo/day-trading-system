@@ -8,13 +8,14 @@ router.get("/", (req, res) => {
 });
 
 router.get("/db_test", (req, res) => {
-    text = "select 1 from cart"
+    text = "select * from users"
     values = []
     query(text, values, async (err, result) => {
-      if (err) return dbFail.failSafe(err, res);
+      if (err) return res.send(err);
         return res.send({"db_data": result});
     })
   });
+
 
 
 module.exports = router;
