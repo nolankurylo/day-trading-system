@@ -1,4 +1,4 @@
-{ 
+{
   "name": "load_tester",
   "version": "1.0.0",
   "description": "This node application is used to test of the loadfiles on the system.",
