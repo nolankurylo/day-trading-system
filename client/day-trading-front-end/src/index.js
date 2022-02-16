@@ -2,11 +2,20 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import './css/index.css';
 import App from './Views/App';
+import Login from './Views/Login';
+import SignUp from "./Views/SignUp";
 import reportWebVitals from './test/reportWebVitals';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 
 ReactDOM.render(
   <React.StrictMode>
-    <App />
+    <Router>
+      <Routes>
+          <Route path="/" element={<App />}/>
+          <Route path="/register" element={<SignUp />}/>
+          <Route path="/login" element={<Login />}/>
+        </Routes>
+    </Router>
   </React.StrictMode>,
   document.getElementById('root')
 );
