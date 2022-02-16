@@ -1,4 +1,4 @@
-{ 
+{
   "name": "load_tester",
   "version": "1.0.0",
   "description": "This node application is used to test of the loadfiles on the system.",
@@ -9,9 +9,6 @@
   "author": "Treavor Gagne",
   "license": "ISC",
   "dependencies": {
-    "cors": "^2.8.5",
-    "dotenv": "^16.0.0",
-    "express": "^4.17.2",
-    "pg": "^8.7.3"
+    "express": "^4.17.2"
   }
 }
