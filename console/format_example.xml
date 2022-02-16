@@ -1,0 +1,92 @@
+<?xml version="1.0" ?>
+<?xml-model href="logfile.xsd"?>
+
+<!-- example UserCommandType -->
+<log>
+     <!-- log contains sublogs
+          userCommand
+          quoteServer
+          accountTransaction
+          systemEvent
+          errorEvent
+          dedugEvent
+          number of sublogs is unbound
+     -->
+     <userCommand>
+          <timestamp>1640939719000</timestamp>
+          <server>TBA</server>
+          <transactionNum>123</transactionNum>
+          <command>ADD</command>
+          <username>Michael Miguire</username>
+          <stockSymbol>NFT</stockSymbol>
+          <filename>example.txt</filename>
+          <funds>100</funds>
+     </userCommand>
+     
+     <quoteServer>
+          <timestamp>1640939719000</timestamp>
+          <server>TBA</server>
+          <transactionNum>123</transactionNum>
+          <price>69.69</price>
+          <stockSymbol>NFT</stockSymbol>
+          <username>Michael Miguire</username>
+          <quoteServerTime>10</quoteServerTime>
+          <cryptokey>KEY</cryptokey>
+     </quoteServer>
+     
+     <accountTransaction>
+          <timestamp>
+               1640939719000
+          </timestamp>
+          <server>
+               TBA
+          </server>
+          <transactionNum>
+               123
+          </transactionNum>
+          <action>
+               GET
+          </action>
+          <username>
+               Michael Miguire
+          </username>
+          <funds>
+               123.33
+          </funds>
+     </accountTransaction>
+
+     <systemEvent>
+          <timestamp>1640939719000</timestamp>
+          <server>TBA</server>
+          <transactionNum>123</transactionNum>
+          <command>ADD</command>
+          <username>Michael Miguire</username>
+          <stockSymbol>NFT</stockSymbol>
+          <filename>FILENAME.txt</filename>
+          <funds>123.12</funds>
+     </systemEvent>
+
+     <errorEvent>
+          <timestamp>1640939719000</timestamp>
+          <server>TBA</server>
+          <transactionNum>123</transactionNum>
+          <command>ADD</command>
+          <stockSymbol>NFT</stockSymbol>
+          <filename>filename.txt</filename>
+          <funds>123.33</funds>
+          <errorMessage>ERROR</errorMessage>
+     </errorEvent>
+
+     <debugEvent>
+          <timestamp>1640939719000</timestamp>
+          <server>TBA</server>
+          <transactionNum>123</transactionNum>
+          <command>ADD</command>
+          <username>Michael Mcguire</username>
+          <stockSymbol></stockSymbol>
+          <filename>filename.txt</filename>
+          <funds>123.33</funds>
+          <debugMessage>DEBUG</debugMessage>
+     </debugEvent>
+
+</log>
