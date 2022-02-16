@@ -19,33 +19,33 @@ create table user_funds(
 	PRIMARY KEY(funds_id),
   	CONSTRAINT fk_users_id
       FOREIGN KEY(user_id) 
-         REFERENCES customers(user_id)
+         REFERENCES users(user_id)
 );
 
 create table buys(
 	buy_trigger_id SERIAL,
   	user_id SERIAL,
     stockSymbol varchar(3) NOT NULL,
-  	buy_trigger_threshold REAL NOT NULL CHECK(funds_amount > 0.0),
+  	buy_trigger_threshold REAL NOT NULL CHECK(buy_trigger_threshold > 0.0),
     is_active BOOLEAN NOT NULL,
     buy_amount real NOT NULL CHECK(buy_amount > 0.0),
 	PRIMARY KEY(buy_trigger_id),
   	CONSTRAINT fk_users_id
       FOREIGN KEY(user_id) 
-         REFERENCES customers(user_id)
+         REFERENCES users(user_id)
 );
 
 create table sells(
 	sell_trigger_id SERIAL,
   	user_id SERIAL,
     stockSymbol varchar(3) NOT NULL,
-  	sell_trigger_threshold REAL NOT NULL CHECK(funds_amount > 0.0),
+  	sell_trigger_threshold REAL NOT NULL CHECK(sell_trigger_threshold > 0.0),
     is_active BOOLEAN NOT NULL,
     sell_amount real NOT NULL CHECK(sell_amount > 0.0),
 	PRIMARY KEY(sell_trigger_id),
   	CONSTRAINT fk_users_id
       FOREIGN KEY(user_id) 
-         REFERENCES customers(user_id)
+         REFERENCES users(user_id)
 );
 
 create table transactions(
@@ -67,5 +67,5 @@ create table transactions(
  	PRIMARY KEY(transactionNum),
   	CONSTRAINT fk_users_id
       FOREIGN KEY(user_id) 
-         REFERENCES customers(user_id)
+         REFERENCES users(user_id)
 );
