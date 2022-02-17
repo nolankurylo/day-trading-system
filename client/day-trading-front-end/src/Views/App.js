@@ -1,14 +1,30 @@
 import '../css/App.css';
-import Login from './Login';
+import Login from './Components/Login';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import { Link } from "react-router-dom";
+import UserPool from './UserPool';
+import Home from './Components/Home';
+import { Account } from './Components/Account'
 
 
 function App() {
+
+var isAuth = false
+
+if (UserPool.getCurrentUser()) {
+
+  isAuth = true
+}
+
   return (
-    <div className="App">
-      <Login/>
-    </div>
+    
+    <Account>
+
+      { isAuth?
+        <Home />
+        :
+        <Login/>
+        }
+    </Account>
   );
 }
 

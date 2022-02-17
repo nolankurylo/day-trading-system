@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import {Button, FormControl, InputGroup, Modal} from 'react-bootstrap';
 import { Link } from 'react-router-dom';
-import UserPool from './UserPool';
+import UserPool from '../UserPool';
 import { CognitoUserAttribute } from 'amazon-cognito-identity-js';
 
 export default function SignUp (props) {

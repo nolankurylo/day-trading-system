@@ -2,7 +2,7 @@ import React, {useState} from 'react'
 import {Button, Card, FormControl, InputGroup, Modal} from 'react-bootstrap'
 import { Link } from "react-router-dom";
 import { CognitoUser, AuthenticationDetails } from "amazon-cognito-identity-js";
-import UserPool from './UserPool';
+import UserPool from '../UserPool';
 
 
 export default function Login (props) {
@@ -26,6 +26,7 @@ export default function Login (props) {
     user.authenticateUser(authDetails, {
       onSuccess: (data) => {
         console.log("onSuccess: ", data);
+        window.location.href='/'
       },
       onFailure: (err) => {
         console.error("onFailure: ", err);

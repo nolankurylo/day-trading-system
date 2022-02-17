@@ -2,8 +2,8 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import './css/index.css';
 import App from './Views/App';
-import Login from './Views/Login';
-import SignUp from "./Views/SignUp";
+import Login from './Views/Components/Login';
+import SignUp from "./Views/Components/SignUp";
 import reportWebVitals from './test/reportWebVitals';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 
