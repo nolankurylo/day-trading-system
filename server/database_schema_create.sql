@@ -66,10 +66,7 @@ create table transactions(
     action varchar(100) NULL,
     errorMessage varchar(250) NULL,
     debugMessage varchar(250) NULL,
- 	PRIMARY KEY(id),
-  	CONSTRAINT fk_userid
-      FOREIGN KEY(username) 
-         REFERENCES users(userid)
+ 	PRIMARY KEY(id)
 );
 
 INSERT INTO users (userid, user_password, user_email, role)

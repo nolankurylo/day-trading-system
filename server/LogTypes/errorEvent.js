@@ -1,6 +1,6 @@
 var query = require("../tools/queryDatabase");
 
-module.exports = async (transactionNum, command, username, stockSymbol, filename, funds, errorMessage) => {
+module.exports = async (transactionNum, command, username, stockSymbol, filename, funds, errorMessage, cb) => {
     timestamp = Math.floor(new Date().getTime());
     text = `insert into transactions (transactionnum, logtype, timestamp, server, command, username, stocksymbol, filename, funds, errormessage)
     values ($1, 'errorEvent', $2, 'own_server', $3, $4, $5, $6, $7, $8)`
