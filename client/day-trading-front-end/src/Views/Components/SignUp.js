@@ -72,7 +72,7 @@ export default function SignUp (props) {
                 </Modal.Body>
                 <Modal.Footer>
                     <Button variant="primary">
-                        <Link to="/login">Login</Link>
+                        <Link to="/login" className='register-link'>Login</Link>
                     </Button>
                     <Button variant="secondary" onClick={onSubmit}>Sign Up</Button>
                 </Modal.Footer>

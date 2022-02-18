@@ -2,8 +2,9 @@ import React, { useState, useContext, useEffect } from "react";
 import {Button, Card, FormControl, InputGroup, Modal} from 'react-bootstrap'
 import { AccountContext } from "./Account";
 import UserPool from '../UserPool';
+import NavBar from './Navbar'
 
-const Status = () => {
+export default function Home (props) {
   const [status, setStatus] = useState(false);
 
   const { getSession, logout } = useContext(AccountContext);
@@ -20,6 +21,8 @@ const Status = () => {
   return (
 
     <div className='Login'>
+
+        <NavBar />
         <Modal.Dialog className='LoginCard'>
                 <Modal.Header>
                     <Modal.Title>Welcome, { user.username }</Modal.Title>
@@ -36,4 +39,3 @@ const Status = () => {
     </div>
   );
 };
-export default Status;

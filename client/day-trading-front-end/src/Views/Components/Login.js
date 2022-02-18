@@ -3,6 +3,7 @@ import {Button, Card, FormControl, InputGroup, Modal} from 'react-bootstrap'
 import { Link } from "react-router-dom";
 import { CognitoUser, AuthenticationDetails } from "amazon-cognito-identity-js";
 import UserPool from '../UserPool';
+import NavBar from './Navbar';
 
 
 export default function Login (props) {
@@ -72,7 +73,7 @@ export default function Login (props) {
                 <Modal.Footer>
                     <Button variant="primary" onClick={onSubmit}>Login</Button>
                     <Button variant="secondary">
-                        <Link to="/register">Sign Up</Link>
+                        <Link to="/register" className='register-link'>Sign Up</Link>
                     </Button>
                 </Modal.Footer>
             </Modal.Dialog>

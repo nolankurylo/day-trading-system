@@ -3,6 +3,7 @@ import Login from './Components/Login';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import UserPool from './UserPool';
 import Home from './Components/Home';
+import NavBar from './Components/Navbar';
 import { Account } from './Components/Account'
 
 
@@ -18,11 +19,14 @@ if (UserPool.getCurrentUser()) {
   return (
     
     <Account>
-
       { isAuth?
-        <Home />
+        <div>
+          <Home />
+        </div>
         :
-        <Login/>
+        <div>
+          <Login />
+        </div>
         }
     </Account>
   );
