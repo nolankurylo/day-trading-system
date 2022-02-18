@@ -16,7 +16,6 @@ const pool = new Pool({
 
 })
 
-// queryDatabase(text, values, cb(err, result)) {
 module.exports = async (text, values, cb) => {
   const client = await pool.connect()
   .catch((err) => {
