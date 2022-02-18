@@ -52,7 +52,7 @@ create table sells(
 create table transactions(
 	transactionNum SERIAL,
   	username varchar(100),
-    command varchar(100) NOT NULL,
+    command varchar(100) NULL,
     funds REAL NULL CHECK(funds > 0.0),
     timestamp BIGINT NOT NULL,
     server varchar(100) NOT NULL,
