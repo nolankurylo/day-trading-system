@@ -1,10 +1,10 @@
 var query = require("../tools/queryDatabase");
 
-module.exports = async (timestamp, price, stockSymbol, username, quoteServerTime, cryptoKey, cb) => {
+module.exports = async (transactionNum, timestamp, price, stockSymbol, username, quoteServerTime, cryptoKey, cb) => {
 
-    text = `insert into transactions (logtype, transaction_timestamp, server_name, price, stocksymbol, userid, quoteservertime, cryptokey)
-    values ('quoteServer', $1, 'own_server', $2, $3, $4, $5, $6)`
-    values = [timestamp, price, stockSymbol, username, quoteServerTime, cryptoKey]
+    text = `insert into transactions (transactionnum, logtype, timestamp, server, price, stocksymbol, username, quoteservertime, cryptokey)
+    values ($1, 'quoteServer', $2, 'own_server', $3, $4, $5, $6, $7)`
+    values = [transactionNum, timestamp, price, stockSymbol, username, quoteServerTime, cryptoKey]
     query(text, values, async (err, result) => {
         return cb(err, result)
     })

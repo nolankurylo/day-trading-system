@@ -50,22 +50,23 @@ create table sells(
 );
 
 create table transactions(
-	transactionNum SERIAL,
-  	username varchar(100),
+  id SERIAL,
+	transactionNum int NOT NULL,
+  	username varchar(100) NULL,
     command varchar(100) NULL,
-    funds REAL NULL CHECK(funds > 0.0),
+    funds REAL NULL CHECK(funds >= 0.0),
     timestamp BIGINT NOT NULL,
     server varchar(100) NOT NULL,
     stockSymbol varchar(3) NULL,
     LogType varchar(100) NOT NULL,
-    price REAL NULL CHECK(price > 0.0),
+    price REAL NULL CHECK(price >= 0.0),
     filename varchar(100) NULL, 
     quoteServerTime BIGINT NULL,
     cryptoKey varchar(100) NULL,
     action varchar(100) NULL,
     errorMessage varchar(250) NULL,
     debugMessage varchar(250) NULL,
- 	PRIMARY KEY(transactionNum),
+ 	PRIMARY KEY(id),
   	CONSTRAINT fk_userid
       FOREIGN KEY(username) 
          REFERENCES users(userid)

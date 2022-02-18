@@ -1,60 +1,57 @@
 var express = require("express");
-const { quote } = require("yahoo-finance");
 var router = express.Router();
 var crypto = require('crypto');
 var base64url = require('base64url');
-const yf = require("yahoo-finance")
 const dbFail = require("../tools/dbFailSafe");
 var query = require("../tools/queryDatabase");
 var quoteServer = require('../LogTypes/quoteServer')
 var userCommand = require('../LogTypes/userCommand')
+var utils = require('../tools/utils')
 
 router.get("/", (req, res) => {
     return res.send("Hello world, NALT connected! 🌝");
 });
 
-router.get("/db_test", (req, res) => {
-    text = "select * from users"
-    values = []
-    query(text, values, async (err, result) => {
-      if (err) return dbFail.failSafe(err, res);
-        return res.send({"db_data": result});
-    })
-  });
 
 /*
 Request Body Parameters
 @param userid
-@param stocksymbol
-@param filename
+@param stocksymbol 
 */
-router.get("/quote", async (req, res) => {
-  const quote = await yf.quote(req.body.stocksymbol, ['price'])
+router.get("/quote", 
+  utils.getNextTransactionNumber,
+  async (req, res) => {
   
-  quoteservertime = Math.floor(new Date(quote['price']['regularMarketTime']).getTime());
-  transaction_timestamp = Math.floor(new Date().getTime());
-  console.log(transaction_timestamp)
+  // NEED TO COME BACK AND MAKE FAKE QUOTE SERVER LATER 
+  // ----------------------------------------------
+  transactionNum = req.body.nextTransactionNum
+  stockSymbol=req.body.stocksymbol
+  username=req.body.userid
+  quoteservertime = Math.floor(new Date().getTime());
+  timestamp = Math.floor(new Date().getTime());
   cryptokey = base64url(crypto.randomBytes(20))
-  price = quote['price']['regularMarketPrice']
-  quoteServer(transaction_timestamp, price, req.body.stocksymbol, req.body.userid, quoteservertime, cryptokey, (err, result) => {
+  price = "12.12"
+  // ---------------------------------------------
+
+  quoteServer(transactionNum=transactionNum, timestamp=timestamp, price=price, stockSymbol=stockSymbol, username=username, quoteServerTime=quoteservertime, cryptoKey=cryptokey, (err, result) => {
     if (err) return dbFail.failSafe(err, res);
     text = "select * from user_funds where userid = $1"
-    values = [req.body.userid]
+    values = [username]
     query(text, values, async (err, result) => {
       if (err) return dbFail.failSafe(err, res);
       if (result.rowCount == 0){
         funds = 0
       }
       else{
-        funds = result.rows[0].funds_amount
+        funds = result.rows[0].funds
       }
-      userCommand(transaction_timestamp, "QUOTE", req.body.userid, req.body.stocksymbol, req.body.filename, funds, (err, result) => {
+      userCommand(transactionNum=transactionNum, timestamp=timestamp, command="QUOTE", username=username, stocksymbol=stockSymbol, filename=null, funds=funds, (err, result) => {
         if (err) return dbFail.failSafe(err, res);
         return res.send(
           {
             "Quoteprice": price,
-            "SYM": req.body.stocksymbol,
-            "username": req.body.userid,
+            "SYM": stockSymbol,
+            "username": username,
             "timestamp": quoteservertime,
             "cryptographickey": cryptokey
         });
