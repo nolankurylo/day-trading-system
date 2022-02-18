@@ -54,7 +54,6 @@ export default function Login (props) {
                             aria-describedby="basic-addon1"
                             value={username}
                             onChange={(event) => setUsername(event.target.value)}
-
                         />
                     </InputGroup>
                     <InputGroup className="mb-3">

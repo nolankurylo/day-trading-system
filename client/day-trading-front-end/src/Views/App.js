@@ -25,7 +25,7 @@ if (UserPool.getCurrentUser()) {
         </div>
         :
         <div>
-          <Login />
+          <NavBar />
         </div>
         }
     </Account>
