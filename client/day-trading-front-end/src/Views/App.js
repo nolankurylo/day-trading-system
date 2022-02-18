@@ -18,17 +18,17 @@ if (UserPool.getCurrentUser()) {
 
   return (
     
-    <Account>
+    <div>
       { isAuth?
         <div>
           <Home />
         </div>
         :
         <div>
-          <NavBar />
+          <Login />
         </div>
         }
-    </Account>
+    </div>
   );
 }
 

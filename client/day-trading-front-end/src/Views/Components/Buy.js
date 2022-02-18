@@ -11,6 +11,23 @@ export default function Buy (props) {
   const [amount, setAmount] = useState(0)
   const [price, setPrice] = useState(50)
 
+  const [status, setStatus] = useState(false);
+
+  const { getSession, logout } = useContext(AccountContext);
+
+  // var user = UserPool.getCurrentUser();
+
+  // if (!user){
+  //   window.location.reload('/')
+  // }
+
+  // useEffect(() => {
+  //   getSession().then((session) => {
+  //     console.log("Session: ", session);
+  //     setStatus(true);
+  //   });
+  // }, []);
+
 
   const onPurchase = (event) => {
     event.preventDefault();
@@ -25,7 +42,8 @@ export default function Buy (props) {
 
     <div className='buy-container'>
       <NavBar />
-        BUY PAGE BUY PAGE
+      <h3>Buy Stock</h3>
+      <h5>This page will allow users to purchase more stock</h5>
 
         <div className='row'>
           <div className='col-6'>

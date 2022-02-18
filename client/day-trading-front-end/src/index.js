@@ -6,6 +6,7 @@ import Login from './Views/Components/Login';
 import SignUp from "./Views/Components/SignUp";
 import Buy from "./Views/Components/Buy";
 import Sell from "./Views/Components/Sell"
+import { Account } from './Views/Components/Account';
 import AccountSummary from './Views/Components/AccountSummary';
 import Settings from './Views/Components/Settings';
 import reportWebVitals from './test/reportWebVitals';
@@ -14,6 +15,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 ReactDOM.render(
   <React.StrictMode>
     <Router>
+      <Account>
       <Routes>
           <Route path="/" element={<App />}/>
           <Route path="/register" element={<SignUp />}/>
@@ -23,6 +25,7 @@ ReactDOM.render(
           <Route path='/account_summary' element={<AccountSummary />}/>
           <Route path='/settings' element={<Settings />} />
         </Routes>
+      </Account>
     </Router>
   </React.StrictMode>,
   document.getElementById('root')

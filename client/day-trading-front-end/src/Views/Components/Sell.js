@@ -9,6 +9,19 @@ export default function Sell (props) {
   const [stock, setStock] = useState("")
   const [amount, setAmount] = useState(0)
   const [price, setPrice] = useState(50)
+  const [status, setStatus] = useState(false);
+  const { getSession, logout } = useContext(AccountContext);
+
+  // var user = UserPool.getCurrentUser();
+
+  // console.log(getSession())
+
+  // useEffect(() => {
+  //   getSession().then((session) => {
+  //     console.log("Session: ", session);
+  //     setStatus(true);
+  //   });
+  // }, []);
 
 
   const onSell = (event) => {
@@ -19,9 +32,11 @@ export default function Sell (props) {
   };
 
   return (
+
     <div className='sell-container'>
         <NavBar />
-          SELL PAGE SELL PAGE
+          <h3>Sell Stock</h3>
+          <h5>This page will allow a user to view all stocks they own, and sell a specified amount and receive the funds back into account</h5>
 
           <div className='row'>
           <div className='col-6'>
