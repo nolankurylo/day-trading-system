@@ -28,12 +28,11 @@ router.get("/quote",
   stockSymbol=req.body.stocksymbol
   username=req.body.userid
   quoteservertime = Math.floor(new Date().getTime());
-  timestamp = Math.floor(new Date().getTime());
   cryptokey = base64url(crypto.randomBytes(20))
   price = "12.12"
   // ---------------------------------------------
 
-  quoteServer(transactionNum=transactionNum, timestamp=timestamp, price=price, stockSymbol=stockSymbol, username=username, quoteServerTime=quoteservertime, cryptoKey=cryptokey, (err, result) => {
+  quoteServer(transactionNum=transactionNum, price=price, stockSymbol=stockSymbol, username=username, quoteServerTime=quoteservertime, cryptoKey=cryptokey, (err, result) => {
     if (err) return dbFail.failSafe(err, res);
     text = "select * from user_funds where userid = $1"
     values = [username]
@@ -45,7 +44,7 @@ router.get("/quote",
       else{
         funds = result.rows[0].funds
       }
-      userCommand(transactionNum=transactionNum, timestamp=timestamp, command="QUOTE", username=username, stocksymbol=stockSymbol, filename=null, funds=funds, (err, result) => {
+      userCommand(transactionNum=transactionNum, command="QUOTE", username=username, stocksymbol=stockSymbol, filename=null, funds=funds, (err, result) => {
         if (err) return dbFail.failSafe(err, res);
         return res.send(
           {
