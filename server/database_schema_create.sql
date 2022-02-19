@@ -36,6 +36,17 @@ create table buys(
          REFERENCES users(userid)
 );
 
+create table user_stocks(
+	id SERIAL,
+  	userid varchar(100) NOT NULL,
+    stockSymbol varchar(3) NOT NULL,
+    amount real NOT NULL CHECK(amount > 0.0),
+	PRIMARY KEY(id),
+  	CONSTRAINT fk_userid
+      FOREIGN KEY(userid) 
+         REFERENCES users(userid)
+);
+
 create table sells(
 	sell_trigger_id SERIAL,
   	userid varchar(100),
@@ -66,6 +77,7 @@ create table transactions(
     action varchar(100) NULL,
     errorMessage varchar(250) NULL,
     debugMessage varchar(250) NULL,
+    buy_state varchar(20), NULL,
  	PRIMARY KEY(id)
 );
 

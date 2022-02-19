@@ -2,13 +2,14 @@
 aws configure
 
 2. Login to ECR:
-aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin public.ecr.aws/d7o4k9p4
+aws ecr get-login-password --region ca-central-1 | docker login --username AWS --password-stdin 704268466190.dkr.ecr.ca-central-1.amazonaws.com
 
 3. CD into folder with Dockerfile and build:
-docker build -t public.ecr.aws/d7o4k9p4/seng468-console:latest . 
+docker build -t seng468-console .
+docker tag seng468-console:latest 704268466190.dkr.ecr.ca-central-1.amazonaws.com/seng468-console:latest
 
 4. Locally run the docker container for testing:
-docker run -p 9000:8080 public.ecr.aws/d7o4k9p4/seng468-console:latest   
+docker run -p 9000:8080 704268466190.dkr.ecr.ca-central-1.amazonaws.com/seng468-console:latest   
 
 5. Push docker image to ECR
-docker push public.ecr.aws/d7o4k9p4/seng468-console:latest 
+docker push 704268466190.dkr.ecr.ca-central-1.amazonaws.com/seng468-console:latest
