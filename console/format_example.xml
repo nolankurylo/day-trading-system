@@ -12,18 +12,18 @@
           dedugEvent
           number of sublogs is unbound
      -->
-     <userCommand>
+     <userCommand> 
           <timestamp>1640939719000</timestamp>
           <server>TBA</server>
           <transactionNum>123</transactionNum>
           <command>ADD</command>
-          <username>Michael Miguire</username>
-          <stockSymbol>NFT</stockSymbol>
-          <filename>example.txt</filename>
-          <funds>100</funds>
+          <username>Michael Miguire</username> <!-- optional -->
+          <stockSymbol>NFT</stockSymbol> <!-- optional -->
+          <filename>example.txt</filename> <!-- optional -->
+          <funds>100</funds> <!-- optional -->
      </userCommand>
      
-     <quoteServer>
+     <quoteServer> <!-- log type for quote command  -->
           <timestamp>1640939719000</timestamp>
           <server>TBA</server>
           <transactionNum>123</transactionNum>
@@ -31,28 +31,16 @@
           <stockSymbol>NFT</stockSymbol>
           <username>Michael Miguire</username>
           <quoteServerTime>10</quoteServerTime>
-          <cryptokey>KEY</cryptokey>
+          <cryptokey>KEY</cryptokey> 
      </quoteServer>
      
      <accountTransaction>
-          <timestamp>
-               1640939719000
-          </timestamp>
-          <server>
-               TBA
-          </server>
-          <transactionNum>
-               123
-          </transactionNum>
-          <action>
-               GET
-          </action>
-          <username>
-               Michael Miguire
-          </username>
-          <funds>
-               123.33
-          </funds>
+          <timestamp>1640939719000</timestamp>
+          <server>TBA</server>
+          <transactionNum>123</transactionNum>
+          <action>add</action> <!-- add or remove -->
+          <username>Michael Miguire</username>
+          <funds>123.33</funds> 
      </accountTransaction>
 
      <systemEvent>
@@ -60,21 +48,22 @@
           <server>TBA</server>
           <transactionNum>123</transactionNum>
           <command>ADD</command>
-          <username>Michael Miguire</username>
-          <stockSymbol>NFT</stockSymbol>
-          <filename>FILENAME.txt</filename>
-          <funds>123.12</funds>
+          <username>Michael Miguire</username> <!-- optional -->
+          <stockSymbol>NFT</stockSymbol> <!-- optional -->
+          <filename>FILENAME.txt</filename> <!-- optional -->
+          <funds>123.12</funds> <!-- optional -->
      </systemEvent>
 
      <errorEvent>
           <timestamp>1640939719000</timestamp>
           <server>TBA</server>
           <transactionNum>123</transactionNum>
-          <command>ADD</command>
-          <stockSymbol>NFT</stockSymbol>
-          <filename>filename.txt</filename>
-          <funds>123.33</funds>
-          <errorMessage>ERROR</errorMessage>
+          <command>BUY</command>
+          <username>Michael Mcguire</username> <!-- optional -->
+          <stockSymbol>NFT</stockSymbol> <!-- optional -->
+          <filename>filename.txt</filename> <!-- optional -->
+          <funds>123.33</funds> <!-- optional -->
+          <errorMessage>ERROR: Inseficient Funds</errorMessage> <!-- optional -->
      </errorEvent>
 
      <debugEvent>
@@ -82,11 +71,11 @@
           <server>TBA</server>
           <transactionNum>123</transactionNum>
           <command>ADD</command>
-          <username>Michael Mcguire</username>
-          <stockSymbol></stockSymbol>
-          <filename>filename.txt</filename>
-          <funds>123.33</funds>
-          <debugMessage>DEBUG</debugMessage>
+          <username>Michael Mcguire</username> <!-- optional -->
+          <stockSymbol>NFT</stockSymbol> <!-- optional -->
+          <filename>filename.txt</filename> <!-- optional -->
+          <funds>123.33</funds> <!-- optional -->
+          <debugMessage>DEBUG</debugMessage> <!-- optional -->
      </debugEvent>
 
 </log>
