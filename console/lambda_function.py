@@ -1,11 +1,19 @@
 import time
 import json
+import requests
+import os
 
 def command_breakdown(params):
     cmd = params[0]
     other_params = params[1:]
     if cmd == 'ADD':
-        return ("Send ADD Here with: " + str(other_params))
+        endpoint_url = 'http://ec2-15-222-26-11.ca-central-1.compute.amazonaws.com/console_test'
+        body = json.dumps({
+            'command': cmd,
+            'params' : json.dumps(other_params)
+        })
+        r = requests.post(endpoint_url, params=body)
+        return r.text
     elif cmd == 'QUOTE':
         return ("Send QUOTE Here with: " + str(other_params))
     elif cmd == 'BUY':
@@ -53,15 +61,17 @@ def lambda_handler(event, context):
     
     contents = workload_file.read()
     command_list = contents.splitlines()
+    
+    output = ''
 
     for command in command_list:
         index,cmd_string = command.split()
         params = cmd_string.split(',')
-        command_breakdown(params)
+        output += command_breakdown(params)
 
     end = time.perf_counter()
 
     return {
         'statusCode': 200,
-        'body': json.dumps(f"Ran in {end - start:0.4f} seconds")
+        'body': json.dumps(output)
     }
