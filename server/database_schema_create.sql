@@ -27,7 +27,7 @@ create table buys(
 	buy_trigger_id SERIAL,
   	userid varchar(100),
     stockSymbol varchar(3) NOT NULL,
-  	buy_trigger_threshold REAL NOT NULL CHECK(buy_trigger_threshold > 0.0),
+  	buy_trigger_threshold REAL NULL CHECK(buy_trigger_threshold > 0.0),
     is_active BOOLEAN NOT NULL,
     buy_amount real NOT NULL CHECK(buy_amount > 0.0),
 	PRIMARY KEY(buy_trigger_id),
@@ -40,7 +40,7 @@ create table sells(
 	sell_trigger_id SERIAL,
   	userid varchar(100),
     stockSymbol varchar(3) NOT NULL,
-  	sell_trigger_threshold REAL NOT NULL CHECK(sell_trigger_threshold > 0.0),
+  	sell_trigger_threshold REAL NULL CHECK(sell_trigger_threshold > 0.0),
     is_active BOOLEAN NOT NULL,
     sell_amount real NOT NULL CHECK(sell_amount > 0.0),
 	PRIMARY KEY(sell_trigger_id),
@@ -66,10 +66,7 @@ create table transactions(
     action varchar(100) NULL,
     errorMessage varchar(250) NULL,
     debugMessage varchar(250) NULL,
- 	PRIMARY KEY(id),
-  	CONSTRAINT fk_userid
-      FOREIGN KEY(username) 
-         REFERENCES users(userid)
+ 	PRIMARY KEY(id)
 );
 
 INSERT INTO users (userid, user_password, user_email, role)
