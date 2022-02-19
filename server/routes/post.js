@@ -651,7 +651,10 @@ router.post("/cancel_set_sell",
               })
           })
         }
+      })
     })
+  }
+)
 
 router.post("/display_summary", 
   utils.getNextTransactionNumber,
