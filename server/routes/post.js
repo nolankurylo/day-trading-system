@@ -2,54 +2,30 @@ var express = require("express");
 var router = express.Router();
 const dbFail = require("../tools/dbFailSafe");
 var query = require("../tools/queryDatabase");
-var userCommand = require("../LogTypes/userCommand")
-var accountTransaction = require("../LogTypes/accountTransaction")
-var utils = require('../tools/utils')
-
-router.post("/console_test", (req, res) => {
-  return res.send({"API received": req.body});
-});
+const userCommand = require("../LogTypes/userCommand")
+const accountTransaction = require("../LogTypes/accountTransaction")
+var utils = require('../tools/utils');
+const systemEvent = require("../LogTypes/systemEvent");
+const errorEvent = require("../LogTypes/errorEvent");
 
 
 /*
 Request Body Parameters
 @param userid
-@param funds
+@param amount
 */
 router.post("/add", 
   utils.getNextTransactionNumber,
   (req, res) => {
 
-
-  timestamp = Math.floor(new Date().getTime());
   username = req.body.userid
   transactionNum=req.body.nextTransactionNum
-
-  text = `with upsert as(update user_funds set funds = funds + $2
-    where userid = $1)
-    insert into user_funds (userid, funds) 
-    select $1, $2 where not exists (select 1 from user_funds where 
-    userid = $1);`
-  values = [username, req.body.funds]
-  query(text, values, async (err, result) => {
+  funds = req.body.amount
+  userCommand(transactionNum=transactionNum, command="ADD", username=username, stockSymbol=null, filename=null, funds=funds, (err, result) => {
     if (err) return dbFail.failSafe(err, res);
-    text = `select * from user_funds where userid = $1`
-    values = [username]
-    query(text, values, async (err, result) => {
-      if (result.rowCount == 0){
-        funds = 0
-      }
-      else{
-        funds = result.rows[0].funds
-      }
+    accountTransaction(transactionNum=transactionNum, action="add", username=username, funds=funds, (err, result) => {
       if (err) return dbFail.failSafe(err, res);
-      userCommand(transactionNum=transactionNum, timestamp=timestamp, command="ADD", username=username, stockSymbol=null, filename=null, funds=funds, (err, result) => {
-        if (err) return dbFail.failSafe(err, res);
-        accountTransaction(transactionNum=transactionNum, timestamp=timestamp, action="add", username=username, funds=funds, (err, result) => {
-          if (err) return dbFail.failSafe(err, res);
-          return res.send({"new_funds": funds});
-        })
-      })
+      return res.send({"success": true, "data": null, "message": "ADD successful"});
     })
   })
 });
@@ -59,29 +35,175 @@ router.post("/add",
 /*
 Request Body Parameters
 @param userid
-@param buy_amount
-@param stocksymbol
+@param StockSymbol
+@param amount - that the user wants to buy of the stock
 */
-// router.post("/buy", (req, res) => {
+router.post("/buy", 
+  utils.getNextTransactionNumber,
+  (req, res) => {
 
-//   text = `select * from user_funds where userid = $1`
-//   values = [req.body.userid]
-//   query(text, values, async (err, result) => {
-//     if (err) return dbFail.failSafe(err, res);
-//     if(result.rowCount < 0 || result.rows[0].funds_amount < req.body.buy_amount){
-//       return res.send({"success": false, errormessage:"Not enough funds"});
-//     }
-//     else{
-//       text = `insert into buys * from user_funds where userid = $1`
-//       values = [req.body.userid]
-//       query(text, values, async (err, result) => {
-//         if (err) return dbFail.failSafe(err, res);
-//           return res.send({"success": true, message:"Bought the stock"});
-//       })
 
-//     }
-//   })
-// });
+  // NEED STOCK SERVER QUOTE below usercommand
+  username = req.body.userid
+  transactionNum=req.body.nextTransactionNum
+  price = "12.12"
+  stockSymbol = req.body.StockSymbol
+  funds = req.body.amount
 
+  userCommand(transactionNum=transactionNum, command="BUY", username=username, stockSymbol=stockSymbol, filename=null, funds=funds, (err, result) => {
+    if (err) return dbFail.failSafe(err, res);
+    
+    systemEvent(transactionNum=transactionNum, command="BUY", username=username, stockSymbol=stockSymbol, filename=null, funds=funds, (err, result) => {
+      if (err) return dbFail.failSafe(err, res);
+      current_unix_time = Math.floor(new Date().getTime());
+      text = `with a as ( select username as userid, sum(funds) as reserved_funds from transactions where username =$1 and buy_state ='UNCOMMITTED'and 
+      logtype ='userCommand'and timestamp + 60000 > $2 GROUP by username ) select funds as total_funds, COALESCE(a.reserved_funds, 0) as 
+      reserved_funds from user_funds natural left join a where userid =$1  `
+      values = [username, current_unix_time]
+      query(text, values, async (err, result) => {
+        if (err) return dbFail.failSafe(err, res);
+        if (result.rowCount == 0){
+          errorMessage = `Account ${username} does not exist`
+          errorEvent(transactionNum=transactionNum, command="BUY", username=username, stockSymbol=stockSymbol, filename=null, funds=funds, errorMessage=errorMessage, (err, result) => {
+            if (err) return dbFail.failSafe(err, res);
+            return res.send({"success": false, "data": null, "message": errorMessage});
+          })
+        }
+        else if(funds > (result.rows[0].total_funds - result.rows[0].reserved_funds) || funds < price ){
+          errorMessage = `Not enough funds`
+          errorEvent(transactionNum=transactionNum, command="BUY", username=username, stockSymbol=stockSymbol, filename=null, funds=funds, errorMessage=errorMessage, (err, result) => {
+            if (err) return dbFail.failSafe(err, res);
+            return res.send({"success": false, "data": null, "message": errorMessage});
+          })
+        }
+        else{
+          text = `update transactions set buy_state = 'UNCOMMITTED' where transactionnum = $1`
+          values = [transactionNum]
+          query(text, values, async (err, result) => {
+            if (err) return dbFail.failSafe(err, res);
+            current_unix_time = Math.floor(new Date().getTime()); 
+            return res.send({"success": true, "data": null, "message": "BUY successful, confirm or cancel"});
+          })
+        }
+      })
+    })
+  })
+});
+
+
+/*
+Request Body Parameters
+@param userid
+*/
+router.post("/commit_buy", 
+  utils.getNextTransactionNumber,
+  (req, res) => {
+
+  username = req.body.userid
+  transactionNum=req.body.nextTransactionNum
+
+  text = `select * from transactions where username = $1 and logtype = 'userCommand' and buy_state = 'UNCOMMITTED' order by timestamp DESC`
+  values = [username]
+  query(text, values, async (err, result) => {
+    if (err) return dbFail.failSafe(err, res);
+    if (result.rowCount == 0){
+      errorMessage = `No uncommited BUYS for ${username}`
+      userCommand(transactionNum=transactionNum, command="COMMIT_BUY", username=username, stockSymbol=null, filename=null, funds=null, (err, result) => {
+        if (err) return dbFail.failSafe(err, res);
+        errorEvent(transactionNum=transactionNum, command="COMMIT_BUY", username=username, stockSymbol=null, filename=null, funds=null, errorMessage=errorMessage, (err, result) => {
+          if (err) return dbFail.failSafe(err, res);
+          return res.send({"success": false, "data": null, "message": errorMessage});
+        })
+      })
+    }
+    else {
+      stockSymbol=result.rows[0].stocksymbol
+      funds=result.rows[0].funds
+      buyTransactionNum = result.rows[0].transactionnum
+      uncommited_buy_timestamp = parseInt(result.rows[0].timestamp)
+      
+      userCommand(transactionNum=transactionNum, command="COMMIT_BUY", username=username, stockSymbol=stockSymbol, filename=null, funds=funds, (err, result) => {
+        if (err) return dbFail.failSafe(err, res);
+        one_minute_unix = 60 * 1000
+        current_unix_time = Math.floor(new Date().getTime());
+        if(uncommited_buy_timestamp + one_minute_unix < current_unix_time ){
+          errorMessage = `Most recent uncommited BUY exceeded 60 second time limit`
+          errorEvent(transactionNum=transactionNum, command="COMMIT_BUY", username=username, stockSymbol=stockSymbol, filename=null, funds=funds, errorMessage=errorMessage, (err, result) => {
+            if (err) return dbFail.failSafe(err, res);
+            return res.send({"success": false, "data": null, "message": errorMessage});
+          })
+        }
+        else{
+          
+          accountTransaction(transactionNum=transactionNum, action="remove", username=username, funds=funds, (err, result) => {
+            if (err) return dbFail.failSafe(err, res);
+            text = `update transactions set buy_state = 'COMMITTED' where transactionnum = $1`
+            values = [buyTransactionNum]
+            query(text, values, async (err, result) => {
+              if (err) return dbFail.failSafe(err, res);
+              return res.send({"success": true, "data": null, "message": "COMMIT_BUY successful"});
+            })
+          })
+        }
+      })
+    }
+  })
+});
+
+
+/*
+Request Body Parameters
+@param userid
+*/
+router.post("/cancel_buy", 
+  utils.getNextTransactionNumber,
+  (req, res) => {
+
+  username = req.body.userid
+  transactionNum=req.body.nextTransactionNum
+
+  text = `select * from transactions where username = $1 and logtype = 'userCommand' and buy_state = 'UNCOMMITTED' order by timestamp DESC`
+  values = [username]
+  query(text, values, async (err, result) => {
+    if (err) return dbFail.failSafe(err, res);
+    if (result.rowCount == 0){
+      errorMessage = `No uncommited BUYS for ${username}`
+      userCommand(transactionNum=transactionNum, command="CANCEL_BUY", username=username, stockSymbol=null, filename=null, funds=null, (err, result) => {
+        if (err) return dbFail.failSafe(err, res);
+        errorEvent(transactionNum=transactionNum, command="CANCEL_BUY", username=username, stockSymbol=null, filename=null, funds=null, errorMessage=errorMessage, (err, result) => {
+          if (err) return dbFail.failSafe(err, res);
+          return res.send({"success": false, "data": null, "message": errorMessage});
+        })
+      })
+    }
+    else {
+      stockSymbol=result.rows[0].stocksymbol
+      funds=result.rows[0].funds
+      buyTransactionNum = result.rows[0].transactionnum
+      uncommited_buy_timestamp = parseInt(result.rows[0].timestamp)
+      
+      userCommand(transactionNum=transactionNum, command="CANCEL_BUY", username=username, stockSymbol=stockSymbol, filename=null, funds=funds, (err, result) => {
+        if (err) return dbFail.failSafe(err, res);
+        one_minute_unix = 60 * 1000
+        current_unix_time = Math.floor(new Date().getTime());
+        if(uncommited_buy_timestamp + one_minute_unix < current_unix_time ){
+          errorMessage = `Most recent uncommited BUY exceeded 60 second time limit`
+          errorEvent(transactionNum=transactionNum, command="CANCEL_BUY", username=username, stockSymbol=stockSymbol, filename=null, funds=funds, errorMessage=errorMessage, (err, result) => {
+            if (err) return dbFail.failSafe(err, res);
+            return res.send({"success": false, "data": null, "message": errorMessage});
+          })
+        }
+        else{
+          text = `update transactions set buy_state = 'CANCELLED' where transactionnum = $1`
+          values = [buyTransactionNum]
+          query(text, values, async (err, result) => {
+            if (err) return dbFail.failSafe(err, res);
+            return res.send({"success": true, "data": null, "message": "CANCEL_BUY successful"});
+          })
+        }
+      })
+    }
+  })
+});
 
 module.exports = router;

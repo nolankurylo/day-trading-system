@@ -17,7 +17,7 @@ router.get("/", (req, res) => {
 /*
 Request Body Parameters
 @param userid
-@param stocksymbol 
+@param StockSymbol 
 */
 router.get("/quote", 
   utils.getNextTransactionNumber,
@@ -26,37 +26,17 @@ router.get("/quote",
   // NEED TO COME BACK AND MAKE FAKE QUOTE SERVER LATER 
   // ----------------------------------------------
   transactionNum = req.body.nextTransactionNum
-  stockSymbol=req.body.stocksymbol
+  stockSymbol=req.body.StockSymbol
   username=req.body.userid
   quoteservertime = Math.floor(new Date().getTime());
-  timestamp = Math.floor(new Date().getTime());
   cryptokey = base64url(crypto.randomBytes(20))
   price = "12.12"
   // ---------------------------------------------
-
-  quoteServer(transactionNum=transactionNum, timestamp=timestamp, price=price, stockSymbol=stockSymbol, username=username, quoteServerTime=quoteservertime, cryptoKey=cryptokey, (err, result) => {
+  userCommand(transactionNum=transactionNum, command="QUOTE", username=username, stocksymbol=stockSymbol, filename=null, funds=null, (err, result) => {
     if (err) return dbFail.failSafe(err, res);
-    text = "select * from user_funds where userid = $1"
-    values = [username]
-    query(text, values, async (err, result) => {
+    quoteServer(transactionNum=transactionNum, price=price, stockSymbol=stockSymbol, username=username, quoteServerTime=quoteservertime, cryptoKey=cryptokey, (err, result) => {
       if (err) return dbFail.failSafe(err, res);
-      if (result.rowCount == 0){
-        funds = 0
-      }
-      else{
-        funds = result.rows[0].funds
-      }
-      userCommand(transactionNum=transactionNum, timestamp=timestamp, command="QUOTE", username=username, stocksymbol=stockSymbol, filename=null, funds=funds, (err, result) => {
-        if (err) return dbFail.failSafe(err, res);
-        return res.send(
-          {
-            "Quoteprice": price,
-            "SYM": stockSymbol,
-            "username": username,
-            "timestamp": quoteservertime,
-            "cryptographickey": cryptokey
-        });
-      })
+      return res.send({"success": true, "data": {"current_price": price}, "message": "QUOTE successful"});
     })
   })   
 });
