@@ -23,7 +23,7 @@ router.post("/add",
   funds = req.body.amount
   userCommand(transactionNum=transactionNum, command="ADD", username=username, stockSymbol=null, filename=null, funds=funds, (err, result) => {
     if (err) return dbFail.failSafe(err, res);
-    accountTransaction(transactionNum=transactionNum, action="add", username=username, funds=funds, (err, result) => {
+    accountTransaction(transactionNum=transactionNum, action="add", username=username, funds=funds, stockSymbol=null, (err, result) => {
       if (err) return dbFail.failSafe(err, res);
       return res.send({"success": true, "data": null, "message": "ADD successful"});
     })
@@ -134,8 +134,7 @@ router.post("/commit_buy",
           })
         }
         else{
-          
-          accountTransaction(transactionNum=transactionNum, action="remove", username=username, funds=funds, (err, result) => {
+          accountTransaction(transactionNum=transactionNum, action="remove_buy", username=username, funds=funds, stockSymbol=stockSymbol, (err, result) => {
             if (err) return dbFail.failSafe(err, res);
             text = `update transactions set buy_state = 'COMMITTED' where transactionnum = $1`
             values = [buyTransactionNum]
@@ -205,6 +204,65 @@ router.post("/cancel_buy",
     }
   })
 });
+
+/*
+Request Body Parameters
+@param userid
+@param StockSymbol
+@param amount - that the user wants to sell of the stock
+*/
+router.post("/sell", 
+  utils.getNextTransactionNumber,
+  (req, res) => {
+
+
+  // NEED STOCK SERVER QUOTE below usercommand
+  username = req.body.userid
+  transactionNum=req.body.nextTransactionNum
+  price = "12.12"
+  stockSymbol = req.body.StockSymbol
+  funds = req.body.amount
+
+  userCommand(transactionNum=transactionNum, command="SELL", username=username, stockSymbol=stockSymbol, filename=null, funds=funds, (err, result) => {
+    if (err) return dbFail.failSafe(err, res);
+    
+    systemEvent(transactionNum=transactionNum, command="BUY", username=username, stockSymbol=stockSymbol, filename=null, funds=funds, (err, result) => {
+      if (err) return dbFail.failSafe(err, res);
+      current_unix_time = Math.floor(new Date().getTime());
+      text = `with a as ( select username as userid, sum(funds) as reserved_funds from transactions where username =$1 and buy_state ='UNCOMMITTED'and 
+      logtype ='userCommand'and timestamp + 60000 > $2 GROUP by username ) select funds as total_funds, COALESCE(a.reserved_funds, 0) as 
+      reserved_funds from user_funds natural left join a where userid =$1  `
+      values = [username, current_unix_time]
+      query(text, values, async (err, result) => {
+        if (err) return dbFail.failSafe(err, res);
+        if (result.rowCount == 0){
+          errorMessage = `Account ${username} does not exist`
+          errorEvent(transactionNum=transactionNum, command="BUY", username=username, stockSymbol=stockSymbol, filename=null, funds=funds, errorMessage=errorMessage, (err, result) => {
+            if (err) return dbFail.failSafe(err, res);
+            return res.send({"success": false, "data": null, "message": errorMessage});
+          })
+        }
+        else if(funds > (result.rows[0].total_funds - result.rows[0].reserved_funds) || funds < price ){
+          errorMessage = `Not enough funds`
+          errorEvent(transactionNum=transactionNum, command="BUY", username=username, stockSymbol=stockSymbol, filename=null, funds=funds, errorMessage=errorMessage, (err, result) => {
+            if (err) return dbFail.failSafe(err, res);
+            return res.send({"success": false, "data": null, "message": errorMessage});
+          })
+        }
+        else{
+          text = `update transactions set buy_state = 'UNCOMMITTED' where transactionnum = $1`
+          values = [transactionNum]
+          query(text, values, async (err, result) => {
+            if (err) return dbFail.failSafe(err, res);
+            current_unix_time = Math.floor(new Date().getTime()); 
+            return res.send({"success": true, "data": null, "message": "BUY successful, confirm or cancel"});
+          })
+        }
+      })
+    })
+  })
+});
+
 
 router.post("/dumplog", 
   utils.getNextTransactionNumber,
