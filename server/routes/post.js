@@ -7,7 +7,8 @@ const accountTransaction = require("../LogTypes/accountTransaction")
 var utils = require('../tools/utils');
 const systemEvent = require("../LogTypes/systemEvent");
 const errorEvent = require("../LogTypes/errorEvent");
-
+var quoteServer2 = require('../quoteServer/quote')
+var quoteServer = require("../LogTypes/quoteServer")
 
 /*
 Request Body Parameters
@@ -41,50 +42,55 @@ Request Body Parameters
 router.post("/buy", 
   utils.getNextTransactionNumber,
   (req, res) => {
-
-
-  // NEED STOCK SERVER QUOTE below usercommand
+ 
   username = req.body.userid
   transactionNum=req.body.nextTransactionNum
-  price = "12.12"
   stockSymbol = req.body.StockSymbol
   funds = req.body.amount
 
+  quote = quoteServer2.getQuote(stockSymbol, username)
+  price = quote.Quoteprice
+  quoteServerTime = quote.timestamp
+  cryptoKey = quote.cryptokey
+  
+
   userCommand(transactionNum=transactionNum, command="BUY", username=username, stockSymbol=stockSymbol, filename=null, funds=funds, (err, result) => {
     if (err) return dbFail.failSafe(err, res);
-    
-    systemEvent(transactionNum=transactionNum, command="BUY", username=username, stockSymbol=stockSymbol, filename=null, funds=funds, (err, result) => {
+    quoteServer(transactionNum=transactionNum, price=price, stockSymbol=stockSymbol, username=username, quoteServerTime=quoteServerTime, cryptoKey=cryptoKey, (err, result) => {
       if (err) return dbFail.failSafe(err, res);
-      current_unix_time = Math.floor(new Date().getTime());
-      text = `with a as ( select username as userid, sum(funds) as reserved_funds from transactions where username =$1 and buy_state ='UNCOMMITTED'and 
-      logtype ='userCommand'and timestamp + 60000 > $2 GROUP by username ) select funds as total_funds, COALESCE(a.reserved_funds, 0) as 
-      reserved_funds from user_funds natural left join a where userid =$1  `
-      values = [username, current_unix_time]
-      query(text, values, async (err, result) => {
+      systemEvent(transactionNum=transactionNum, command="BUY", username=username, stockSymbol=stockSymbol, filename=null, funds=funds, (err, result) => {
         if (err) return dbFail.failSafe(err, res);
-        if (result.rowCount == 0){
-          errorMessage = `Account ${username} does not exist`
-          errorEvent(transactionNum=transactionNum, command="BUY", username=username, stockSymbol=stockSymbol, filename=null, funds=funds, errorMessage=errorMessage, (err, result) => {
-            if (err) return dbFail.failSafe(err, res);
-            return res.send({"success": false, "data": null, "message": errorMessage});
-          })
-        }
-        else if(funds > (result.rows[0].total_funds - result.rows[0].reserved_funds) || funds < price ){
-          errorMessage = `Not enough funds`
-          errorEvent(transactionNum=transactionNum, command="BUY", username=username, stockSymbol=stockSymbol, filename=null, funds=funds, errorMessage=errorMessage, (err, result) => {
-            if (err) return dbFail.failSafe(err, res);
-            return res.send({"success": false, "data": null, "message": errorMessage});
-          })
-        }
-        else{
-          text = `update transactions set buy_state = 'UNCOMMITTED' where transactionnum = $1`
-          values = [transactionNum]
-          query(text, values, async (err, result) => {
-            if (err) return dbFail.failSafe(err, res);
-            current_unix_time = Math.floor(new Date().getTime()); 
-            return res.send({"success": true, "data": null, "message": "BUY successful, confirm or cancel"});
-          })
-        }
+        current_unix_time = Math.floor(new Date().getTime());
+        text = `with a as ( select username as userid, sum(funds) as reserved_funds from transactions where username =$1 and buy_state ='UNCOMMITTED'and 
+        logtype ='userCommand'and timestamp + 60000 > $2 GROUP by username ) select funds as total_funds, COALESCE(a.reserved_funds, 0) as 
+        reserved_funds from user_funds natural left join a where userid =$1  `
+        values = [username, current_unix_time]
+        query(text, values, async (err, result) => {
+          if (err) return dbFail.failSafe(err, res);
+          if (result.rowCount == 0){
+            errorMessage = `Account ${username} does not exist`
+            errorEvent(transactionNum=transactionNum, command="BUY", username=username, stockSymbol=stockSymbol, filename=null, funds=funds, errorMessage=errorMessage, (err, result) => {
+              if (err) return dbFail.failSafe(err, res);
+              return res.send({"success": false, "data": quote, "message": errorMessage});
+            })
+          }
+          else if(funds > (result.rows[0].total_funds - result.rows[0].reserved_funds) || funds < price ){
+            errorMessage = `Not enough funds - Trying to buy $${funds} of stock $${stockSymbol} with only $${result.rows[0].total_funds - result.rows[0].reserved_funds} available funds`
+            errorEvent(transactionNum=transactionNum, command="BUY", username=username, stockSymbol=stockSymbol, filename=null, funds=funds, errorMessage=errorMessage, (err, result) => {
+              if (err) return dbFail.failSafe(err, res);
+              return res.send({"success": false, "data": quote, "message": errorMessage});
+            })
+          }
+          else{
+            text = `update transactions set buy_state = 'UNCOMMITTED', num_stocks = $2 where transactionnum = $1`
+            values = [transactionNum, funds/price]
+            query(text, values, async (err, result) => {
+              if (err) return dbFail.failSafe(err, res);
+              current_unix_time = Math.floor(new Date().getTime()); 
+              return res.send({"success": true, "data": quote, "message": "BUY successful, confirm or cancel"});
+            })
+          }
+        })
       })
     })
   })
@@ -127,20 +133,29 @@ router.post("/commit_buy",
         one_minute_unix = 60 * 1000
         current_unix_time = Math.floor(new Date().getTime());
         if(uncommited_buy_timestamp + one_minute_unix < current_unix_time ){
-          errorMessage = `Most recent uncommited BUY exceeded 60 second time limit`
+          errorMessage = `Most recent uncommitted BUY exceeded 60 second time limit`
           errorEvent(transactionNum=transactionNum, command="COMMIT_BUY", username=username, stockSymbol=stockSymbol, filename=null, funds=funds, errorMessage=errorMessage, (err, result) => {
             if (err) return dbFail.failSafe(err, res);
             return res.send({"success": false, "data": null, "message": errorMessage});
           })
         }
         else{
-          accountTransaction(transactionNum=transactionNum, action="remove_buy", username=username, funds=funds, stockSymbol=stockSymbol, (err, result) => {
+          accountTransaction(transactionNum=transactionNum, action="commit_buy", username=username, funds=funds, stockSymbol=stockSymbol, (err, result) => {
             if (err) return dbFail.failSafe(err, res);
-            text = `update transactions set buy_state = 'COMMITTED' where transactionnum = $1`
+            text = `select price from transactions where transactionnum = $1 and logtype='quoteServer'`
             values = [buyTransactionNum]
             query(text, values, async (err, result) => {
               if (err) return dbFail.failSafe(err, res);
-              return res.send({"success": true, "data": null, "message": "COMMIT_BUY successful"});
+              price=result.rows[0].price
+              text = `with a as (update transactions set buy_state = 'COMMITTED' where transactionnum = $1),
+                    up as (update user_stocks set num_stocks = num_stocks + $3 where userid = $2 and stocksymbol = $4)
+                    insert into user_stocks (userid, num_stocks, stocksymbol) 
+                    select $2, $3, $4 where not exists (select 1 from user_stocks where userid = $2 and stocksymbol = $4)`
+              values = [buyTransactionNum, username, funds/price, stockSymbol]
+              query(text, values, async (err, result) => {
+                if (err) return dbFail.failSafe(err, res);
+                return res.send({"success": true, "data": null, "message": "COMMIT_BUY successful"});
+              })
             })
           })
         }
@@ -218,49 +233,53 @@ router.post("/sell",
   utils.getNextTransactionNumber,
   (req, res) => {
 
-
-  // NEED STOCK SERVER QUOTE below usercommand
   username = req.body.userid
   transactionNum=req.body.nextTransactionNum
-  price = "12.12"
   stockSymbol = req.body.StockSymbol
   funds = req.body.amount
 
+  quote = quoteServer2.getQuote(stockSymbol, username)
+  price = quote.Quoteprice
+  quoteServerTime = quote.timestamp
+  cryptoKey = quote.cryptokey
+
+  
+
   userCommand(transactionNum=transactionNum, command="SELL", username=username, stockSymbol=stockSymbol, filename=null, funds=funds, (err, result) => {
     if (err) return dbFail.failSafe(err, res);
-    
-    systemEvent(transactionNum=transactionNum, command="BUY", username=username, stockSymbol=stockSymbol, filename=null, funds=funds, (err, result) => {
+    quoteServer(transactionNum=transactionNum, price=price, stockSymbol=stockSymbol, username=username, quoteServerTime=quoteServerTime, cryptoKey=cryptoKey, (err, result) => {
       if (err) return dbFail.failSafe(err, res);
-      current_unix_time = Math.floor(new Date().getTime());
-      text = `with a as ( select username as userid, sum(funds) as reserved_funds from transactions where username =$1 and buy_state ='UNCOMMITTED'and 
-      logtype ='userCommand'and timestamp + 60000 > $2 GROUP by username ) select funds as total_funds, COALESCE(a.reserved_funds, 0) as 
-      reserved_funds from user_funds natural left join a where userid =$1  `
-      values = [username, current_unix_time]
-      query(text, values, async (err, result) => {
+      systemEvent(transactionNum=transactionNum, command="SELL", username=username, stockSymbol=stockSymbol, filename=null, funds=funds, (err, result) => {
         if (err) return dbFail.failSafe(err, res);
-        if (result.rowCount == 0){
-          errorMessage = `Account ${username} does not exist`
-          errorEvent(transactionNum=transactionNum, command="BUY", username=username, stockSymbol=stockSymbol, filename=null, funds=funds, errorMessage=errorMessage, (err, result) => {
-            if (err) return dbFail.failSafe(err, res);
-            return res.send({"success": false, "data": null, "message": errorMessage});
-          })
-        }
-        else if(funds > (result.rows[0].total_funds - result.rows[0].reserved_funds) || funds < price ){
-          errorMessage = `Not enough funds`
-          errorEvent(transactionNum=transactionNum, command="BUY", username=username, stockSymbol=stockSymbol, filename=null, funds=funds, errorMessage=errorMessage, (err, result) => {
-            if (err) return dbFail.failSafe(err, res);
-            return res.send({"success": false, "data": null, "message": errorMessage});
-          })
-        }
-        else{
-          text = `update transactions set buy_state = 'UNCOMMITTED' where transactionnum = $1`
-          values = [transactionNum]
-          query(text, values, async (err, result) => {
-            if (err) return dbFail.failSafe(err, res);
-            current_unix_time = Math.floor(new Date().getTime()); 
-            return res.send({"success": true, "data": null, "message": "BUY successful, confirm or cancel"});
-          })
-        }
+        text = `select * from user_stocks where userid = $1 and stocksymbol = $2`
+        values = [username, stockSymbol]
+        query(text, values, async (err, result) => {
+          if (err) return dbFail.failSafe(err, res);
+          if (result.rowCount == 0){
+            errorMessage = `No holdings for stock ${stockSymbol} exist for user ${username}`
+            errorEvent(transactionNum=transactionNum, command="SELL", username=username, stockSymbol=stockSymbol, filename=null, funds=funds, errorMessage=errorMessage, (err, result) => {
+              if (err) return dbFail.failSafe(err, res);
+              return res.send({"success": false, "data": quote, "message": errorMessage});
+            })
+          }
+          else if(funds > price * result.rows[0].num_stocks){
+            errorMessage = `Not enough funds - Trying to sell $${funds} of stock $${stockSymbol} with only $${price * result.rows[0].num_stocks} available funds`
+            errorEvent(transactionNum=transactionNum, command="SELL", username=username, stockSymbol=stockSymbol, filename=null, funds=funds, errorMessage=errorMessage, (err, result) => {
+              if (err) return dbFail.failSafe(err, res);
+              return res.send({"success": false, "data": quote, "message": errorMessage});
+            })
+          }
+          else{
+            dollar_holdings = price * result.rows[0].num_stocks
+            text = `update transactions set sell_state = 'UNCOMMITTED' where transactionnum = $1`
+            values = [transactionNum]
+            query(text, values, async (err, result) => {
+              if (err) return dbFail.failSafe(err, res);
+              current_unix_time = Math.floor(new Date().getTime()); 
+              return res.send({"success": true, "data": quote, "message": "SELL successful, confirm or cancel"});
+            })
+          }
+        })
       })
     })
   })

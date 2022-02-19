@@ -22,19 +22,19 @@ Request Body Parameters
 router.get("/quote", 
   utils.getNextTransactionNumber,
   async (req, res) => {
-  
-  // NEED TO COME BACK AND MAKE FAKE QUOTE SERVER LATER 
-  // ----------------------------------------------
-  transactionNum = req.body.nextTransactionNum
-  stockSymbol=req.body.StockSymbol
-  username=req.body.userid
-  quoteservertime = Math.floor(new Date().getTime());
-  cryptokey = base64url(crypto.randomBytes(20))
-  price = "12.12"
-  // ---------------------------------------------
+
+  username = req.body.userid
+  transactionNum=req.body.nextTransactionNum
+  stockSymbol = req.body.StockSymbol
+
+  quote = quoteServer2.getQuote(stockSymbol, username)
+  price = quote.Quoteprice
+  quoteServerTime = quote.timestamp
+  cryptoKey = quote.cryptokey
+
   userCommand(transactionNum=transactionNum, command="QUOTE", username=username, stocksymbol=stockSymbol, filename=null, funds=null, (err, result) => {
     if (err) return dbFail.failSafe(err, res);
-    quoteServer(transactionNum=transactionNum, price=price, stockSymbol=stockSymbol, username=username, quoteServerTime=quoteservertime, cryptoKey=cryptokey, (err, result) => {
+    quoteServer(transactionNum=transactionNum, price=price, stockSymbol=stockSymbol, username=username, quoteServerTime=quoteServerTime, cryptoKey=cryptoKey, (err, result) => {
       if (err) return dbFail.failSafe(err, res);
       return res.send({"success": true, "data": {"current_price": price}, "message": "QUOTE successful"});
     })
