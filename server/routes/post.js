@@ -8,6 +8,8 @@ var utils = require('../tools/utils');
 const systemEvent = require("../LogTypes/systemEvent");
 const errorEvent = require("../LogTypes/errorEvent");
 var quote = require('../quoteServer/quote')
+var dumplog = require('../tools/dumplog')
+
 
 /*
 Request Body Parameters
@@ -205,9 +207,6 @@ router.post("/cancel_buy",
   })
 });
 
-
-
-
 /*
 Request Body Parameters
 @param userid
@@ -265,6 +264,7 @@ router.post("/sell",
     })
   })
 });
+
 
 
 /*
@@ -439,6 +439,36 @@ router.post("/cancel_set_buy",
 
 
 
+
+router.post("/dumplog", 
+  utils.getNextTransactionNumber,
+  (req, res) => {
+  filename = req.body.filename
+  transactionNum = req.body.nextTransactionNum
+  userCommand(transactionNum=transactionNum, command="DUMPLOG", username=null, stockSymbol=null, filename=filename, funds=null, (err, result) => {
+    if (err) return dbFail.failSafe(err, res);
+    dumplog(null, (err, result) => {
+      if (err) return dbFail.failSafe(err, res);
+      return res.send({"success": true, "data": result, "message": "dumplog successful"});
+    })
+  })
+});
+
+
+router.post("/user_dumplog", 
+  utils.getNextTransactionNumber,
+  (req, res) => {
+  username = req.body.userid
+  filename = req.body.filename
+  transactionNum = req.body.nextTransactionNum
+  userCommand(transactionNum=transactionNum, command="DUMPLOG", username=username, stockSymbol=null, filename=filename, funds=null, (err, result) => {
+    if (err) return dbFail.failSafe(err, res);
+    dumplog(username, (err, result) => {
+      if (err) return dbFail.failSafe(err, res);
+      return res.send({"success": true, "data": result, "message": "user dumplog successful"});
+    })
+  })
+});
 
 
 /*
@@ -622,6 +652,17 @@ router.post("/cancel_set_sell",
           })
         }
     })
+
+router.post("/display_summary", 
+  utils.getNextTransactionNumber,
+  (req, res) => {
+  username = req.body.userid
+  transactionNum = req.body.nextTransactionNum
+  userCommand(transactionNum=transactionNum, command="DISPLAY_SUMMARY", username=username, stockSymbol=null, filename=null, funds=null, (err, result) => {
+    if (err) return dbFail.failSafe(err, res);
+    // get history of transactions, buys, and sells
+    return res.send({"success": true, "data": null, "message": "display summary successful"});
+
   })
 });
 
