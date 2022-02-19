@@ -3,57 +3,294 @@ import json
 import requests
 import os
 
+
+API_URL = 'http://ec2-15-222-26-11.ca-central-1.compute.amazonaws.com'
+
 def command_breakdown(params):
+
     cmd = params[0]
-    other_params = params[1:]
+    args  = params[1:]
+
     if cmd == 'ADD':
-        endpoint_url = 'http://ec2-15-222-26-11.ca-central-1.compute.amazonaws.com/console_test'
+
+        userid = args[0]
+        amount = args[1]
+
         body = json.dumps({
-            'command': cmd,
-            'params' : json.dumps(other_params)
+            'userid' : userid,
+            'amount' : amount
         })
-        r = requests.post(endpoint_url, params=body)
-        return r.text
+
+        URL = API_URL + '/add'
+        
+        r = requests.post(URL, params=body)
+
+        return (r.json())
+
     elif cmd == 'QUOTE':
-        return ("Send QUOTE Here with: " + str(other_params))
+
+        userid = args[0]
+        stockSymbol = args[1]
+
+        body = json.dumps({
+            'userid' : userid,
+            'stockSymbol' : stockSymbol
+        })
+
+        URL = API_URL + '/quote'
+        
+        r = requests.post(URL, params=body)
+
+        return (r.json())
+
     elif cmd == 'BUY':
-        return ("Send BUY Here with: " + str(other_params))
+
+        userid = args[0]
+        stockSymbol = args[1]
+        amount = args[2]
+
+        body = json.dumps({
+            'userid' : userid,
+            'stockSymbol' : stockSymbol,
+            'amount': amount
+        })
+
+        URL = API_URL + '/buy'
+        
+        r = requests.post(URL, params=body)
+
+        return (r.json())
+
     elif cmd == 'COMMIT_BUY':
-        return ("Send COMMIT_BUY Here with: " + str(other_params))
+
+        userid = args[0]
+        
+        body = json.dumps({
+            'userid' : userid
+            
+        })
+
+        URL = API_URL + '/commit_buy'
+        
+        r = requests.post(URL, params=body)
+        return (r.json())
+
     elif cmd == 'CANCEL_BUY':
-        return ("Send CANCEL_BUY Here with: " + str(other_params))
+        userid = args[0]
+
+        body = json.dumps({
+            'userid' : userid
+            
+        })
+
+        URL = API_URL + '/cancel_buy'
+
+        r = requests.post(URL, params=body)
+
+        return (r.json())
+
     elif cmd == 'SELL':
-        return ("Send SELL Here with: " + str(other_params))
+        userid = args[0]
+        stockSymbol = args[1]
+        amount = args[2]
+
+        body = json.dumps({
+            'userid' : userid,
+            'stockSymbol' : stockSymbol,
+            'amount': amount
+        })
+
+        URL = API_URL + '/sell'
+        
+        r = requests.post(URL, params=body)
+
+        return (r.json())
+
     elif cmd == 'COMMIT_SELL':
-        return ("Send COMMIT_SELL Here with: " + str(other_params))
+        userid = args[0]
+
+        body = json.dumps({
+            'userid' : userid
+            
+        })
+
+        URL = API_URL + '/commit_sell'
+
+        r = requests.post(URL, params=body)
+
+        return (r.json())
+
     elif cmd == 'CANCEL_SELL':
-        return ("Send CANCEL_SELL Here with: " + str(other_params))
+
+        userid = args[0]
+
+        body = json.dumps({
+            'userid' : userid
+            
+        })
+
+        URL = API_URL + '/cancel_sell'
+
+        r = requests.post(URL, params=body)
+
+        return (r.json())
+
     elif cmd == 'SET_BUY_AMOUNT':
-        return ("Send SET_BUY_AMOUNT Here with: " + str(other_params))
+
+        userid = args[0]
+        stockSymbol = args[1]
+        amount = args[2]
+
+        body = json.dumps({
+            'userid' : userid,
+            'stockSymbol' : stockSymbol,
+            'amount': amount
+        })
+
+        URL = API_URL + '/set_buy_amount'
+        
+        r = requests.post(URL, params=body)
+
+        return (r.json())
+
     elif cmd == 'CANCEL_SET_BUY':
-        return ("Send CANCEL_SET_BUY Here with: " + str(other_params))
+
+        userid = args[0]
+        amount = args[1]
+
+        body = json.dumps({
+            'userid' : userid,
+            'amount': amount
+        })
+
+        URL = API_URL + '/cancel_set_buy'
+        
+        r = requests.post(URL, params=body)
+
+        return (r.json())
+
     elif cmd == 'SET_BUY_TRIGGER':
-        return ("Send SET_BUY_TRIGGER Here with: " + str(other_params))
+
+        userid = args[0]
+        stockSymbol = args[1]
+        amount = args[2]
+
+        body = json.dumps({
+            'userid' : userid,
+            'stockSymbol' : stockSymbol,
+            'amount': amount
+        })
+
+        URL = API_URL + '/set_buy_trigger'
+        
+        r = requests.post(URL, params=body)
+
+        return (r.json())
+
     elif cmd == 'SET_SELL_AMOUNT':
-        return ("Send SET_SELL_AMOUNT Here with: " + str(other_params))
+
+        userid = args[0]
+        stockSymbol = args[1]
+        amount = args[2]
+
+        body = json.dumps({
+            'userid' : userid,
+            'stockSymbol' : stockSymbol,
+            'amount': amount
+        })
+
+        URL = API_URL + '/set_sell_amount'
+        
+        r = requests.post(URL, params=body)
+
+        return (r.json())
+
     elif cmd == 'SET_SELL_TRIGGER':
-        return ("Send SET_SELL_TRIGGER Here with: " + str(other_params))
+
+        userid = args[0]
+        stockSymbol = args[1]
+        amount = args[2]
+
+        body = json.dumps({
+            'userid' : userid,
+            'stockSymbol' : stockSymbol,
+            'amount': amount
+        })
+
+        URL = API_URL + '/set_sell_trigger'
+        
+        r = requests.post(URL, params=body)
+
+        return (r.json())
+
     elif cmd == 'CANCEL_SET_SELL':
-        return ("Send CANCEL_SET_SELL Here with: " + str(other_params))
-    elif cmd == 'DUMPLOG' and len(other_params) > 1:
-        return ("Send DUMPLOG USER Here with: " + str(other_params))
+
+        userid = args[0]
+        stockSymbol = args[1]
+
+        body = json.dumps({
+            'userid' : userid,
+            'stockSymbol' : stockSymbol
+        })
+
+        URL = API_URL + '/cancel_set_sell'
+        
+        r = requests.post(URL, params=body)
+
+        return (r.json())
+
+    elif cmd == 'DUMPLOG' and len(args) > 1:
+
+        userid = args[0]
+        filename = args[1]
+        
+        body = json.dumps({
+            'userid' : userid,
+            'filename' : filename
+        })
+
+        URL = API_URL + '/dumplog'
+        
+        r = requests.post(URL, params=body)
+
+        return (r.json())
+
     elif cmd == 'DUMPLOG':
-        return ("Send DUMPLOG Here with: " + str(other_params))
+
+        filename = args[0]
+        
+        body = json.dumps({
+            'filename' : filename
+        })
+
+        URL = API_URL + '/dumplog'
+        
+        r = requests.post(URL, params=body)
+
+        return (r.json())
+        
     elif cmd == 'DISPLAY_SUMMARY':
-        return ("Send DISPLAY_SUMMARY Here with: " + str(other_params))
+
+        userid = args[0]
+        
+        body = json.dumps({
+            'userid' : userid
+        })
+
+        URL = API_URL + '/dumplog'
+        
+        r = requests.post(URL, params=body)
+
+        return (r.json())
 
 
 ###################### MAIN ######################
 
-# Run this file with python3 console.py workload/{filename}
+# Run this file with python3 lambda_function.py workload/{filename}
 
 def lambda_handler(event, context): 
     start = time.perf_counter()
+    print(start)
 
     file_name = event['file_path']
 
