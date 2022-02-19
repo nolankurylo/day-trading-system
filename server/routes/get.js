@@ -16,7 +16,7 @@ router.get("/", (req, res) => {
 /*
 Request Body Parameters
 @param userid
-@param stocksymbol 
+@param StockSymbol 
 */
 router.get("/quote", 
   utils.getNextTransactionNumber,
@@ -25,7 +25,7 @@ router.get("/quote",
   // NEED TO COME BACK AND MAKE FAKE QUOTE SERVER LATER 
   // ----------------------------------------------
   transactionNum = req.body.nextTransactionNum
-  stockSymbol=req.body.stocksymbol
+  stockSymbol=req.body.StockSymbol
   username=req.body.userid
   quoteservertime = Math.floor(new Date().getTime());
   cryptokey = base64url(crypto.randomBytes(20))
@@ -35,7 +35,7 @@ router.get("/quote",
     if (err) return dbFail.failSafe(err, res);
     quoteServer(transactionNum=transactionNum, price=price, stockSymbol=stockSymbol, username=username, quoteServerTime=quoteservertime, cryptoKey=cryptokey, (err, result) => {
       if (err) return dbFail.failSafe(err, res);
-      return res.send({"Commands Executed: QUOTE": ["userCommand", "quoteServer"]});;
+      return res.send({"success": true, "data": {"current_price": price}, "message": "QUOTE successful"});
     })
   })   
 });

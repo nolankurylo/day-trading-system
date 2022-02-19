@@ -66,6 +66,7 @@ create table transactions(
     action varchar(100) NULL,
     errorMessage varchar(250) NULL,
     debugMessage varchar(250) NULL,
+    buy_state varchar(20), NULL,
  	PRIMARY KEY(id)
 );
 
