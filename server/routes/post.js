@@ -285,30 +285,40 @@ router.post("/set_buy_amount",
       if (err) return dbFail.failSafe(err, res);
       //Check user has enough holdings
       get_funds = `with buy_amounts as (select SUM(buy_amount) as buy_amount from buys where userid = $1 and stockSymbol = $2)
-      select COALESCE(funds,0) + COALESCE(buy_amount,0) as total_funds from user_funds, buy_amounts;`
+      select COALESCE(funds,0) as user_total, COALESCE(buy_amount,0) as buys_total from user_funds, buy_amounts;`
       query(get_funds, [username,stock_symbol], async (err, result) => {
         if (err) return dbFail.failSafe(err, res);
         if (result.rowCount == 0){
-          errorEvent(transactionNum,command,username,stock_symbol,null,buy_amount,"Insufficient Funds",(err, result) => {
+          errorEvent(transactionNum,command,username,stock_symbol,null,buy_amount,"User Not Found",(err, result) => {
             if (err) return dbFail.failSafe(err, res);
-            return res.send({"success": false, "data": null, "message": "Not enough funds for trigger"});
+            return res.send({"success": false, "data": null, "message": "User Not Found"});
           })
         }
         else {
-          account_funds = result.rows[0].total_funds
-          if (account_funds >= buy_amount){
-            //upsert into buy table & user command log 
-            create_buy = `with upsert as(update buys set buy_amount = $1
-              where userid = $2 and stocksymbol = $3)
-              insert into buys (userid, buy_amount, is_active, stocksymbol) 
-              select $2, $1, $4, $3 where not exists 
-              (select 1 from buys where userid = $2 and stocksymbol = $3)`
-            values = [buy_amount,username,stock_symbol,false]
-            query(create_buy, values, async (err, result) => {
-              if (err) return dbFail.failSafe(err, res);
-              //Decrement user holdings & account transaction log
-              subtract_holdings = `update user_funds set funds = funds - $2
+          buys_total = result.rows[0].buys_total
+          funds_needed = result.rows[0].user_total + buys_total
+          if (funds_needed >= buy_amount){
+            if (buys_total > 0){
+              //Update
+              update_buy = `with buy_update as (update buys set buy_amount = $3
+              where userid = $1 and stocksymbol = $2)
+              update user_funds set funds = funds + $4 - $3
               where userid = $1`
+              values = [username,stock_symbol,buy_amount,buys_total]
+              query(update_buy, values, async (err, result) => {
+                if (err) return dbFail.failSafe(err, res);
+                accountTransaction(transactionNum,'remove',username,buy_amount,null, (err, result) => {
+                  if (err) return dbFail.failSafe(err, res);
+                  return res.send({"success": true, "data": null, "message": "SET_BUY_AMOUNT successful"});
+                })
+              })
+            } else {
+              //Insert
+              insert_buy = `with buy_insert as (insert into buys (userid, buy_amount, is_active, stocksymbol)
+              values ($1,$2,$3,$4))
+              update user_funds set funds = funds - $2
+              where userid = $1`
+              values = [username,buy_amount,false,stock_symbol]
               query(subtract_holdings, [username,buy_amount], (err, result) => {
                 if (err) return dbFail.failSafe(err, res);
                 accountTransaction(transactionNum,'remove',username,buy_amount,null, (err, result) => {
@@ -316,7 +326,7 @@ router.post("/set_buy_amount",
                   return res.send({"success": true, "data": null, "message": "SET_BUY_AMOUNT successful"});
                 })
               })
-            })
+            }
           } else {
             //error log
             errorEvent(transactionNum,command,username,stock_symbol,null,buy_amount,"Insufficient Funds",(err, result) => {
@@ -448,7 +458,7 @@ router.post("/set_sell_amount",
     userCommand(transactionNum,command,username,stock_symbol,null,sell_amount, (err, result) => {
       if (err) return dbFail.failSafe(err, res);
       //Check user has enough holdings
-      get_stocks = `select num_stocks from user_stocks where userid = $1 and stockSymbol = $2;`
+      get_stocks = `select num_stocks from user_stocks where userid =$1 and stocksymbol = $2;`
       query(get_stocks, [username,stock_symbol], async (err, result) => {
         if (err) return dbFail.failSafe(err, res);
         if (result.rowCount == 0){
@@ -458,22 +468,39 @@ router.post("/set_sell_amount",
           })
         }
         else {
-          stock_amount = result.rows[0].num_stocks
-          if (stock_amount >= sell_amount){
-            //upsert into sell table & user command log 
-            create_sell = `with upsert as(update sells set sell_amount = $1
-              where userid = $2 and stocksymbol = $3)
-              insert into sells (userid, sell_amount, is_active, stocksymbol) 
-              select $2, $1, $4, $3 where not exists 
-              (select 1 from sells where userid = $2 and stocksymbol = $3)`
-            values = [sell_amount,username,stock_symbol,false]
-            query(create_sell, values, async (err, result) => {
+          stock_total = result.rows[0].num_stocks
+          if (stock_total >= sell_amount){
+            //Check if sell trigger exists 
+            get_sells = `select * from sells where userid =$1 and stocksymbol = $2;`
+            query(get_sells, [username,stock_symbol], async (err, result) => {
               if (err) return dbFail.failSafe(err, res);
-              //account transaction log
-              accountTransaction(transactionNum,'remove',username,sell_amount,null, (err, result) => {
-                if (err) return dbFail.failSafe(err, res);
-                return res.send({"success": true, "data": null, "message": "SET_SELL_AMOUNT successful"});
-              })
+              if (result.rowCount == 0){
+                //Insert
+                insert_sell = `insert into sells (userid, sell_amount, is_active, stocksymbol) 
+                values($1,$2,$3,$4)`
+                values = [username,sell_amount,false,stock_symbol]
+                query(insert_sell, values, async (err, result) => {
+                  return res.send({"success": true, "data": null, "message": "SET_SELL_AMOUNT successful"});
+                })
+              }
+              else {
+                if (result.rows[0].is_active){
+                  //error log
+                  errorEvent(transactionNum,command,username,stock_symbol,null,sell_amount,"Trigger Already Active",(err, result) => {
+                    if (err) return dbFail.failSafe(err, res);
+                    return res.send({"success": false, "data": null, "message": "Cannot change active trigger amount"});
+                  })
+                } else {
+                  //update
+                  update_sells = `update sells set sell_amount = $1
+                  where userid = $2 and stocksymbol = $3`
+                  values = [sell_amount,username,stock_symbol]
+                  query(update_sells, values, async (err, result) => {
+                    if (err) return dbFail.failSafe(err, res);
+                    return res.send({"success": true, "data": null, "message": "SET_SELL_AMOUNT successful"});
+                  })
+                }
+              }
             })
           } else {
             //error log
@@ -510,7 +537,7 @@ router.post("/set_sell_trigger",
       query(find_sell, [username,stock_symbol], async (err, result) => {
         if (err) return dbFail.failSafe(err, res);
         if (result.rowCount == 0){
-            errorEvent(transactionNum,command,username,stock_symbol,null,trigger_amount,"No Sell To Set a Trigger",(err, result) => {
+            errorEvent(transactionNum,command,username,stock_symbol,null,trigger_amount,"Sell trigger not found",(err, result) => {
               if (err) return dbFail.failSafe(err, res);
               return res.send({"success": false, "data": null, "message": "Sell trigger not found"});
             })
@@ -518,28 +545,36 @@ router.post("/set_sell_trigger",
         else {
           id = result.rows[0].sell_trigger_id
           sell_amount = result.rows[0].sell_amount
-          // update sell table with trigger amount
-          update_query = `update sells set 
-          sell_trigger_threshold = $2,
-          is_active = $3
-          where sell_trigger_id = $1`
-          query(update_query,[id,trigger_amount,true],async (err, result) => {
-            if (err) return dbFail.failSafe(err, res);
-            //Decrement user stocks & account transaction log
-            subtract_holdings = `update user_stocks set num_stocks = num_stocks - $3
+          //Check if trigger is active 
+          if (result.rows[0].is_active){
+            //Just update trigger
+            update_query = `update sells set 
+              sell_trigger_threshold = $3,is_active = $4 where userid = $1 and stocksymbol = $2`
+              values=[username,stock_symbol,trigger_amount,true]
+              query(update_query,values,async (err, result) => {
+                if (err) return dbFail.failSafe(err, res);
+                return res.send({"success": true, "data": null, "message": "SET_SELL_TRIGGER successful"});
+              })
+          } else {
+            //Update trigger and decrement stock table 
+            update_query = `with update_sells as (update sells set 
+            sell_trigger_threshold = $3,is_active = $4 where userid = $1 and stocksymbol = $2)
+            update user_stocks set num_stocks = num_stocks - $5
             where userid = $1 and stocksymbol = $2`
-            query(subtract_holdings, [username,stock_symbol,sell_amount], (err, result) => {
+            values=[username,stock_symbol,trigger_amount,true,sell_amount]
+            query(update_query,values,async (err, result) => {
               if (err) return dbFail.failSafe(err, res);
-              accountTransaction(transactionNum,'remove',username,trigger_amount,null, (err, result) => {
+              systemEvent(transactionNum,command,username,stock_symbol,null,sell_amount,(err, result) => {
                 if (err) return dbFail.failSafe(err, res);
                 return res.send({"success": true, "data": null, "message": "SET_SELL_TRIGGER successful"});
               })
             })
-          })
+          }
         }
       })
     })
-})
+  }
+);
 
 /*
 Request Body Parameters
