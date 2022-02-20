@@ -1,13 +1,12 @@
 var express = require("express");
 var router = express.Router();
-var crypto = require('crypto');
-var base64url = require('base64url');
 const dbFail = require("../tools/dbFailSafe");
 var query = require("../tools/queryDatabase");
 var quoteServer = require('../LogTypes/quoteServer')
 var userCommand = require('../LogTypes/userCommand')
 var quote = require('../quoteServer/quote')
 var utils = require('../tools/utils')
+const validate = require('../tools/validate');
 
 router.get("/", (req, res) => {
     return res.send("Hello world, NALT connected! 🌝");
@@ -20,6 +19,7 @@ Request Body Parameters
 @param StockSymbol 
 */
 router.get("/quote", 
+  validate.quote(),
   utils.getNextTransactionNumber,
   async (req, res) => {
 
@@ -44,10 +44,12 @@ router.get("/quote",
 /*
 Request Body Parameters
 @param userid
-@param stocksymbol 
+@param StockSymbol 
 */
-router.get("/get_quote", (req,res) => {
-  stockSymbol = req.body.stockSymbol
+router.get("/get_quote", 
+  validate.quote(),
+  (req,res) => {
+  stockSymbol = req.body.StockSymbol
   username = req.body.userid
   return res.send(quote.getQuote(stockSymbol, username));
 })
