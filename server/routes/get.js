@@ -8,6 +8,7 @@ var quote = require('../quoteServer/quote')
 var utils = require('../tools/utils')
 const validate = require('../tools/validate');
 var dumplog = require('../tools/dumplog')
+const secrets = require('../tools/secrets')
 
 /*
 Request Body Parameters
@@ -15,6 +16,23 @@ none
 */
 router.get("/", (req, res) => {
     return res.send("Hello world, NALT connected! 🌝");
+});
+
+/*
+Request Body Parameters
+none
+*/
+router.get("/test",  (req, res) => {
+
+  // secrets((err, data) => {
+  //   console.log(data)
+  //   return res.send(data);
+  // })
+
+  data =  secrets()
+  console.log(data)
+  return res.send(data);
+  
 });
 
 

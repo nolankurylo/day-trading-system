@@ -9,6 +9,7 @@
   "author": "Treavor Gagne",
   "license": "ISC",
   "dependencies": {
+    "aws-sdk": "^2.1077.0",
     "base64url": "^3.0.1",
     "cors": "^2.8.5",
     "crypto": "^1.0.1",
