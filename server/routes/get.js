@@ -9,7 +9,10 @@ var utils = require('../tools/utils')
 const validate = require('../tools/validate');
 var dumplog = require('../tools/dumplog')
 
-
+/*
+Request Body Parameters
+none
+*/
 router.get("/", (req, res) => {
     return res.send("Hello world, NALT connected! 🌝");
 });
@@ -56,6 +59,10 @@ router.get("/get_quote",
   return res.send(quote.getQuote(stockSymbol, username));
 })
 
+/*
+Request Body Parameters
+none
+*/
 router.get("/get_dump", (req,res) => {
   dumplog(null, (err, result) => {
     if (err) return dbFail.failSafe(err, res);
