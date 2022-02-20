@@ -16,14 +16,14 @@ def command_breakdown(params):
         userid = args[0]
         amount = args[1]
 
-        body = json.dumps({
+        body = {
             'userid' : userid,
             'amount' : amount
-        })
+        }
 
         URL = API_URL + '/add'
         
-        r = requests.post(URL, params=body)
+        r = requests.post(URL, json=body)
 
         return (r.json())
 
@@ -32,14 +32,14 @@ def command_breakdown(params):
         userid = args[0]
         stockSymbol = args[1]
 
-        body = json.dumps({
+        body = {
             'userid' : userid,
             'stockSymbol' : stockSymbol
-        })
+        }
 
         URL = API_URL + '/quote'
         
-        r = requests.post(URL, params=body)
+        r = requests.post(URL, json=body)
 
         return (r.json())
 
@@ -49,15 +49,15 @@ def command_breakdown(params):
         stockSymbol = args[1]
         amount = args[2]
 
-        body = json.dumps({
+        body = {
             'userid' : userid,
             'stockSymbol' : stockSymbol,
             'amount': amount
-        })
+        }
 
         URL = API_URL + '/buy'
         
-        r = requests.post(URL, params=body)
+        r = requests.post(URL, json=body)
 
         return (r.json())
 
@@ -65,27 +65,25 @@ def command_breakdown(params):
 
         userid = args[0]
         
-        body = json.dumps({
+        body = {
             'userid' : userid
-            
-        })
+        }
 
         URL = API_URL + '/commit_buy'
         
-        r = requests.post(URL, params=body)
+        r = requests.post(URL, json=body)
         return (r.json())
 
     elif cmd == 'CANCEL_BUY':
         userid = args[0]
 
-        body = json.dumps({
+        body = {
             'userid' : userid
-            
-        })
+        }
 
         URL = API_URL + '/cancel_buy'
 
-        r = requests.post(URL, params=body)
+        r = requests.post(URL, json=body)
 
         return (r.json())
 
@@ -94,29 +92,28 @@ def command_breakdown(params):
         stockSymbol = args[1]
         amount = args[2]
 
-        body = json.dumps({
+        body = {
             'userid' : userid,
             'stockSymbol' : stockSymbol,
             'amount': amount
-        })
+        }
 
         URL = API_URL + '/sell'
         
-        r = requests.post(URL, params=body)
+        r = requests.post(URL, json=body)
 
         return (r.json())
 
     elif cmd == 'COMMIT_SELL':
         userid = args[0]
 
-        body = json.dumps({
-            'userid' : userid
-            
-        })
+        body = {
+            'userid' : userid   
+        }
 
         URL = API_URL + '/commit_sell'
 
-        r = requests.post(URL, params=body)
+        r = requests.post(URL, json=body)
 
         return (r.json())
 
@@ -124,14 +121,13 @@ def command_breakdown(params):
 
         userid = args[0]
 
-        body = json.dumps({
-            'userid' : userid
-            
-        })
+        body = {
+            'userid' : userid   
+        }
 
         URL = API_URL + '/cancel_sell'
 
-        r = requests.post(URL, params=body)
+        r = requests.post(URL, json=body)
 
         return (r.json())
 
@@ -141,15 +137,15 @@ def command_breakdown(params):
         stockSymbol = args[1]
         amount = args[2]
 
-        body = json.dumps({
+        body = {
             'userid' : userid,
             'stockSymbol' : stockSymbol,
             'amount': amount
-        })
+        }
 
         URL = API_URL + '/set_buy_amount'
         
-        r = requests.post(URL, params=body)
+        r = requests.post(URL, json=body)
 
         return (r.json())
 
@@ -158,14 +154,14 @@ def command_breakdown(params):
         userid = args[0]
         amount = args[1]
 
-        body = json.dumps({
+        body = {
             'userid' : userid,
             'amount': amount
-        })
+        }
 
         URL = API_URL + '/cancel_set_buy'
         
-        r = requests.post(URL, params=body)
+        r = requests.post(URL, json=body)
 
         return (r.json())
 
@@ -175,15 +171,15 @@ def command_breakdown(params):
         stockSymbol = args[1]
         amount = args[2]
 
-        body = json.dumps({
+        body = {
             'userid' : userid,
             'stockSymbol' : stockSymbol,
             'amount': amount
-        })
+        }
 
         URL = API_URL + '/set_buy_trigger'
         
-        r = requests.post(URL, params=body)
+        r = requests.post(URL, json=body)
 
         return (r.json())
 
@@ -193,15 +189,15 @@ def command_breakdown(params):
         stockSymbol = args[1]
         amount = args[2]
 
-        body = json.dumps({
+        body = {
             'userid' : userid,
             'stockSymbol' : stockSymbol,
             'amount': amount
-        })
+        }
 
         URL = API_URL + '/set_sell_amount'
         
-        r = requests.post(URL, params=body)
+        r = requests.post(URL, json=body)
 
         return (r.json())
 
@@ -211,15 +207,15 @@ def command_breakdown(params):
         stockSymbol = args[1]
         amount = args[2]
 
-        body = json.dumps({
+        body = {
             'userid' : userid,
             'stockSymbol' : stockSymbol,
             'amount': amount
-        })
+        }
 
         URL = API_URL + '/set_sell_trigger'
         
-        r = requests.post(URL, params=body)
+        r = requests.post(URL, json=body)
 
         return (r.json())
 
@@ -228,14 +224,14 @@ def command_breakdown(params):
         userid = args[0]
         stockSymbol = args[1]
 
-        body = json.dumps({
+        body = {
             'userid' : userid,
             'stockSymbol' : stockSymbol
-        })
+        }
 
         URL = API_URL + '/cancel_set_sell'
         
-        r = requests.post(URL, params=body)
+        r = requests.post(URL, json=body)
 
         return (r.json())
 
@@ -244,14 +240,14 @@ def command_breakdown(params):
         userid = args[0]
         filename = args[1]
         
-        body = json.dumps({
+        body = {
             'userid' : userid,
             'filename' : filename
-        })
+        }
 
         URL = API_URL + '/dumplog'
         
-        r = requests.post(URL, params=body)
+        r = requests.post(URL, json=body)
 
         return (r.json())
 
@@ -259,13 +255,13 @@ def command_breakdown(params):
 
         filename = args[0]
         
-        body = json.dumps({
+        body = {
             'filename' : filename
-        })
+        }
 
         URL = API_URL + '/dumplog'
         
-        r = requests.post(URL, params=body)
+        r = requests.post(URL, json=body)
 
         return (r.json())
         
@@ -273,13 +269,13 @@ def command_breakdown(params):
 
         userid = args[0]
         
-        body = json.dumps({
+        body = {
             'userid' : userid
-        })
+        }
 
         URL = API_URL + '/dumplog'
         
-        r = requests.post(URL, params=body)
+        r = requests.post(URL, json=body)
 
         return (r.json())
 
@@ -304,7 +300,7 @@ def lambda_handler(event, context):
     for command in command_list:
         index,cmd_string = command.split()
         params = cmd_string.split(',')
-        output += command_breakdown(params)
+        output = command_breakdown(params)
 
     end = time.perf_counter()
 
