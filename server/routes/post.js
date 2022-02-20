@@ -10,6 +10,7 @@ const errorEvent = require("../LogTypes/errorEvent");
 var quoteServer = require("../LogTypes/quoteServer")
 var quote = require('../quoteServer/quote')
 var dumplog = require('../tools/dumplog')
+var fs = require('fs');
 const validate = require('../tools/validate');
 
 
@@ -605,11 +606,19 @@ router.post("/dumplog",
   utils.getNextTransactionNumber,
   (req, res) => {
   filename = req.body.filename
+  var n = filename.indexOf('.');
+  filename = filename.substring(0, n != -1 ? n : filename.length);
   transactionNum = req.body.nextTransactionNum
   userCommand(transactionNum=transactionNum, command="DUMPLOG", username=null, stockSymbol=null, filename=filename, funds=null, (err, result) => {
     if (err) return dbFail.failSafe(err, res);
     dumplog(null, (err, result) => {
       if (err) return dbFail.failSafe(err, res);
+      
+      dir = "./Logs/"+filename+".xml"
+      fs.writeFile(dir, result, function(err) {
+          if(err) console.log(err);
+      }); 
+
       return res.send({"success": true, "data": result, "message": "dumplog successful"});
     })
   })
