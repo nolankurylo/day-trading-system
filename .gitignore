@@ -4,3 +4,4 @@ console/__init__.py
 console/app.py
 console/ECRCommands.txt
 console/requirements.txt
+server/Logs/*.xml
