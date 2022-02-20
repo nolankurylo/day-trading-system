@@ -50,10 +50,10 @@ router.post("/buy",
   stockSymbol = req.body.StockSymbol
   funds = req.body.amount
 
-  quote = quote.getQuote(stockSymbol, username)
-  price = quote.Quoteprice
-  quoteServerTime = quote.timestamp
-  cryptoKey = quote.cryptokey
+  returnedQuote = quote.getQuote(stockSymbol, username)
+  price = returnedQuote.Quoteprice
+  quoteServerTime = returnedQuote.timestamp
+  cryptoKey = returnedQuote.cryptokey
   
 
   userCommand(transactionNum=transactionNum, command="BUY", username=username, stockSymbol=stockSymbol, filename=null, funds=funds, (err, result) => {
@@ -77,7 +77,7 @@ router.post("/buy",
             })
           }
           else if(funds > (result.rows[0].total_funds - result.rows[0].reserved_funds) || funds < price ){
-            errorMessage = `Not enough funds - Trying to buy $${funds} of stock $${stockSymbol} with only $${result.rows[0].total_funds - result.rows[0].reserved_funds} available funds`
+            errorMessage = `Not enough funds - Trying to buy $${funds} of stock ${stockSymbol} @ $${price}/share with only $${result.rows[0].total_funds - result.rows[0].reserved_funds} available funds`
             errorEvent(transactionNum=transactionNum, command="BUY", username=username, stockSymbol=stockSymbol, filename=null, funds=funds, errorMessage=errorMessage, (err, result) => {
               if (err) return dbFail.failSafe(err, res);
               return res.send({"success": false, "data": quote, "message": errorMessage});
@@ -237,10 +237,10 @@ router.post("/sell",
   stockSymbol = req.body.StockSymbol
   funds = req.body.amount
 
-  quote = quote.getQuote(stockSymbol, username)
-  price = quote.Quoteprice
-  quoteServerTime = quote.timestamp
-  cryptoKey = quote.cryptokey
+  returnedQuote = quote.getQuote(stockSymbol, username)
+  price = returnedQuote.Quoteprice
+  quoteServerTime = returnedQuote.timestamp
+  cryptoKey = returnedQuote.cryptokey
 
   num_stocks_to_sell = funds / price
   
