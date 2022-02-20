@@ -17,6 +17,14 @@ module.exports = {
             } 
             next()
         })
+    },
+    insertNewUser: async (req, res, next) => {
+        text = `INSERT INTO users (userid, user_email, user_password, role) VALUES ($1, 'console@test.com', $1, 'console')ON CONFLICT DO NOTHING;`
+        values = [req.body.userid]
+        query(text, values, async (err, result) => {
+            if(err) next(err) 
+            next()
+        })
     }
 }
   
