@@ -8,6 +8,7 @@ var quoteServer = require('../LogTypes/quoteServer')
 var userCommand = require('../LogTypes/userCommand')
 var quote = require('../quoteServer/quote')
 var utils = require('../tools/utils')
+var dumplog = require('../tools/dumplog')
 
 router.get("/", (req, res) => {
     return res.send("Hello world, NALT connected! 🌝");
@@ -51,5 +52,13 @@ router.get("/get_quote", (req,res) => {
   username = req.body.userid
   return res.send(quote.getQuote(stockSymbol, username));
 })
+
+router.get("/get_dump", (req,res) => {
+  dumplog(null, (err, result) => {
+    if (err) return dbFail.failSafe(err, res);
+    return res.send(result);
+  })
+})
+
 
 module.exports = router;

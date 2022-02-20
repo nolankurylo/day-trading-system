@@ -16,7 +16,7 @@ module.exports = async (username, cb) => {
   
       if (result.rowCount == 0) return res.send("<?xml version=\"1.0\"?><log></log>");
       else {
-        logStr = "<?xml version=\"1.0\"?>\n<log>\n"
+        logStr = "<?xml version='1.0'?>\n<log>\n"
         
         rows.forEach(row => {
           log = row.logtype
