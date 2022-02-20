@@ -3,6 +3,7 @@ DROP TABLE IF EXISTS user_funds;
 DROP TABLE IF EXISTS transactions;
 DROP TABLE IF EXISTS buys;
 DROP TABLE IF EXISTS sells;
+DROP TABLE IF EXISTS user_stocks;
 
 create table users (
   id SERIAL, 
