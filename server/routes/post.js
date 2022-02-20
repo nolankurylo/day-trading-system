@@ -10,6 +10,7 @@ const errorEvent = require("../LogTypes/errorEvent");
 var quoteServer = require("../LogTypes/quoteServer")
 var quote = require('../quoteServer/quote')
 var dumplog = require('../tools/dumplog')
+const validate = require('../tools/validate');
 
 
 /*
@@ -18,9 +19,11 @@ Request Body Parameters
 @param amount
 */
 router.post("/add", 
+  validate.add(),
   utils.getNextTransactionNumber,
+  utils.insertNewUser,
   (req, res) => {
-
+  
   username = req.body.userid
   transactionNum=req.body.nextTransactionNum
   funds = req.body.amount
@@ -42,6 +45,7 @@ Request Body Parameters
 @param amount - that the user wants to buy of the stock
 */
 router.post("/buy", 
+  validate.buy_sell(),
   utils.getNextTransactionNumber,
   (req, res) => {
  
@@ -60,39 +64,36 @@ router.post("/buy",
     if (err) return dbFail.failSafe(err, res);
     quoteServer(transactionNum=transactionNum, price=price, stockSymbol=stockSymbol, username=username, quoteServerTime=quoteServerTime, cryptoKey=cryptoKey, (err, result) => {
       if (err) return dbFail.failSafe(err, res);
-      systemEvent(transactionNum=transactionNum, command="BUY", username=username, stockSymbol=stockSymbol, filename=null, funds=funds, (err, result) => {
+      current_unix_time = Math.floor(new Date().getTime());
+      text = `with a as ( select username as userid, sum(funds) as reserved_funds from transactions where username =$1 and buy_state ='UNCOMMITTED'and 
+      logtype ='userCommand'and timestamp + 60000 > $2 GROUP by username ) select funds as total_funds, COALESCE(a.reserved_funds, 0) as 
+      reserved_funds from user_funds natural left join a where userid =$1  `
+      values = [username, current_unix_time]
+      query(text, values, async (err, result) => {
         if (err) return dbFail.failSafe(err, res);
-        current_unix_time = Math.floor(new Date().getTime());
-        text = `with a as ( select username as userid, sum(funds) as reserved_funds from transactions where username =$1 and buy_state ='UNCOMMITTED'and 
-        logtype ='userCommand'and timestamp + 60000 > $2 GROUP by username ) select funds as total_funds, COALESCE(a.reserved_funds, 0) as 
-        reserved_funds from user_funds natural left join a where userid =$1  `
-        values = [username, current_unix_time]
-        query(text, values, async (err, result) => {
-          if (err) return dbFail.failSafe(err, res);
-          if (result.rowCount == 0){
-            errorMessage = `Account ${username} does not exist`
-            errorEvent(transactionNum=transactionNum, command="BUY", username=username, stockSymbol=stockSymbol, filename=null, funds=funds, errorMessage=errorMessage, (err, result) => {
-              if (err) return dbFail.failSafe(err, res);
-              return res.send({"success": false, "data": quote, "message": errorMessage});
-            })
-          }
-          else if(funds > (result.rows[0].total_funds - result.rows[0].reserved_funds) || funds < price ){
-            errorMessage = `Not enough funds - Trying to buy $${funds} of stock ${stockSymbol} @ $${price}/share with only $${result.rows[0].total_funds - result.rows[0].reserved_funds} available funds`
-            errorEvent(transactionNum=transactionNum, command="BUY", username=username, stockSymbol=stockSymbol, filename=null, funds=funds, errorMessage=errorMessage, (err, result) => {
-              if (err) return dbFail.failSafe(err, res);
-              return res.send({"success": false, "data": quote, "message": errorMessage});
-            })
-          }
-          else{
-            text = `update transactions set buy_state = 'UNCOMMITTED', num_stocks = $2 where transactionnum = $1`
-            values = [transactionNum, funds/price]
-            query(text, values, async (err, result) => {
-              if (err) return dbFail.failSafe(err, res);
-              current_unix_time = Math.floor(new Date().getTime()); 
-              return res.send({"success": true, "data": quote, "message": "BUY successful, confirm or cancel"});
-            })
-          }
-        })
+        if (result.rowCount == 0){
+          errorMessage = `Account ${username} does not exist`
+          errorEvent(transactionNum=transactionNum, command="BUY", username=username, stockSymbol=stockSymbol, filename=null, funds=funds, errorMessage=errorMessage, (err, result) => {
+            if (err) return dbFail.failSafe(err, res);
+            return res.send({"success": false, "data": quote, "message": errorMessage});
+          })
+        }
+        else if(funds > (result.rows[0].total_funds - result.rows[0].reserved_funds) || funds < price ){
+          errorMessage = `Not enough funds - Trying to buy $${funds} of stock ${stockSymbol} @ $${price}/share with only $${result.rows[0].total_funds - result.rows[0].reserved_funds} available funds`
+          errorEvent(transactionNum=transactionNum, command="BUY", username=username, stockSymbol=stockSymbol, filename=null, funds=funds, errorMessage=errorMessage, (err, result) => {
+            if (err) return dbFail.failSafe(err, res);
+            return res.send({"success": false, "data": quote, "message": errorMessage});
+          })
+        }
+        else{
+          text = `update transactions set buy_state = 'UNCOMMITTED', num_stocks = $2 where transactionnum = $1`
+          values = [transactionNum, funds/price]
+          query(text, values, async (err, result) => {
+            if (err) return dbFail.failSafe(err, res);
+            current_unix_time = Math.floor(new Date().getTime()); 
+            return res.send({"success": true, "data": quote, "message": "BUY successful, confirm or cancel"});
+          })
+        }
       })
     })
   })
@@ -103,7 +104,8 @@ router.post("/buy",
 Request Body Parameters
 @param userid
 */
-router.post("/commit_buy", 
+router.post("/commit_buy",
+  validate.userid(), 
   utils.getNextTransactionNumber,
   (req, res) => {
 
@@ -142,21 +144,24 @@ router.post("/commit_buy",
           })
         }
         else{
-          accountTransaction(transactionNum=transactionNum, action="commit_buy", username=username, funds=funds, stockSymbol=stockSymbol, (err, result) => {
+          systemEvent(transactionNum=transactionNum, command="COMMIT_BUY", username=username, stockSymbol=stockSymbol, filename=null, funds=funds, (err, result) => {
             if (err) return dbFail.failSafe(err, res);
-            text = `select price from transactions where transactionnum = $1 and logtype='quoteServer'`
-            values = [buyTransactionNum]
-            query(text, values, async (err, result) => {
+            accountTransaction(transactionNum=transactionNum, action="commit_buy", username=username, funds=funds, stockSymbol=stockSymbol, (err, result) => {
               if (err) return dbFail.failSafe(err, res);
-              price=result.rows[0].price
-              text = `with a as (update transactions set buy_state = 'COMMITTED' where transactionnum = $1),
-                    up as (update user_stocks set num_stocks = num_stocks + $3 where userid = $2 and stocksymbol = $4)
-                    insert into user_stocks (userid, num_stocks, stocksymbol) 
-                    select $2, $3, $4 where not exists (select 1 from user_stocks where userid = $2 and stocksymbol = $4)`
-              values = [buyTransactionNum, username, funds/price, stockSymbol]
+              text = `select price from transactions where transactionnum = $1 and logtype='quoteServer'`
+              values = [buyTransactionNum]
               query(text, values, async (err, result) => {
                 if (err) return dbFail.failSafe(err, res);
-                return res.send({"success": true, "data": null, "message": "COMMIT_BUY successful"});
+                price=result.rows[0].price
+                text = `with a as (update transactions set buy_state = 'COMMITTED' where transactionnum = $1),
+                      up as (update user_stocks set num_stocks = num_stocks + $3 where userid = $2 and stocksymbol = $4)
+                      insert into user_stocks (userid, num_stocks, stocksymbol) 
+                      select $2, $3, $4 where not exists (select 1 from user_stocks where userid = $2 and stocksymbol = $4)`
+                values = [buyTransactionNum, username, funds/price, stockSymbol]
+                query(text, values, async (err, result) => {
+                  if (err) return dbFail.failSafe(err, res);
+                  return res.send({"success": true, "data": null, "message": "COMMIT_BUY successful"});
+                })
               })
             })
           })
@@ -171,7 +176,8 @@ router.post("/commit_buy",
 Request Body Parameters
 @param userid
 */
-router.post("/cancel_buy", 
+router.post("/cancel_buy",
+  validate.userid(),  
   utils.getNextTransactionNumber,
   (req, res) => {
 
@@ -229,6 +235,7 @@ Request Body Parameters
 @param amount - that the user wants to sell of the stock
 */
 router.post("/sell", 
+  validate.buy_sell(), 
   utils.getNextTransactionNumber,
   (req, res) => {
 
@@ -248,44 +255,41 @@ router.post("/sell",
     if (err) return dbFail.failSafe(err, res);
     quoteServer(transactionNum=transactionNum, price=price, stockSymbol=stockSymbol, username=username, quoteServerTime=quoteServerTime, cryptoKey=cryptoKey, (err, result) => {
       if (err) return dbFail.failSafe(err, res);
-      systemEvent(transactionNum=transactionNum, command="SELL", username=username, stockSymbol=stockSymbol, filename=null, funds=funds, (err, result) => {
+      text = `with a as ( select username as userid, sum(num_stocks) as reserved_stocks from transactions where username =$1 and sell_state ='UNCOMMITTED' and 
+      logtype ='userCommand' and stocksymbol = $3 and timestamp + 60000 > $2 GROUP by username ) select num_stocks as total_stocks, COALESCE(a.reserved_stocks, 0) as 
+      reserved_stocks from user_stocks natural left join a where userid =$1 and stocksymbol = $3 `
+      // text = `select * from user_stocks where userid = $1 and stocksymbol = $2`
+      current_unix_time = Math.floor(new Date().getTime())
+      values = [username, current_unix_time, stockSymbol]
+      query(text, values, async (err, result) => {
         if (err) return dbFail.failSafe(err, res);
-        text = `with a as ( select username as userid, sum(num_stocks) as reserved_stocks from transactions where username =$1 and sell_state ='UNCOMMITTED' and 
-        logtype ='userCommand' and stocksymbol = $3 and timestamp + 60000 > $2 GROUP by username ) select num_stocks as total_stocks, COALESCE(a.reserved_stocks, 0) as 
-        reserved_stocks from user_stocks natural left join a where userid =$1 and stocksymbol = $3 `
-        // text = `select * from user_stocks where userid = $1 and stocksymbol = $2`
-        current_unix_time = Math.floor(new Date().getTime())
-        values = [username, current_unix_time, stockSymbol]
-        query(text, values, async (err, result) => {
-          if (err) return dbFail.failSafe(err, res);
-          if (result.rowCount == 0){
-            errorMessage = `No holdings for stock ${stockSymbol} exist for user ${username}`
+        if (result.rowCount == 0){
+          errorMessage = `No holdings for stock ${stockSymbol} exist for user ${username}`
+          errorEvent(transactionNum=transactionNum, command="SELL", username=username, stockSymbol=stockSymbol, filename=null, funds=funds, errorMessage=errorMessage, (err, result) => {
+            if (err) return dbFail.failSafe(err, res);
+            return res.send({"success": false, "data": quote, "message": errorMessage});
+          })
+        }
+        else{
+          num_stocks_owned = result.rows[0].total_stocks - result.rows[0].reserved_stocks
+          funds_owned = num_stocks_owned * price
+          if(num_stocks_to_sell > num_stocks_owned || num_stocks_to_sell < 0){
+            errorMessage = `Not enough funds - Trying to sell $${funds} of stock ${stockSymbol} with only $${funds_owned} available funds - ${num_stocks_owned} total stocks owned`
             errorEvent(transactionNum=transactionNum, command="SELL", username=username, stockSymbol=stockSymbol, filename=null, funds=funds, errorMessage=errorMessage, (err, result) => {
               if (err) return dbFail.failSafe(err, res);
               return res.send({"success": false, "data": quote, "message": errorMessage});
             })
           }
           else{
-            num_stocks_owned = result.rows[0].total_stocks - result.rows[0].reserved_stocks
-            funds_owned = num_stocks_owned * price
-            if(num_stocks_to_sell > num_stocks_owned || num_stocks_to_sell < 0){
-              errorMessage = `Not enough funds - Trying to sell $${funds} of stock ${stockSymbol} with only $${funds_owned} available funds - ${num_stocks_owned} total stocks owned`
-              errorEvent(transactionNum=transactionNum, command="SELL", username=username, stockSymbol=stockSymbol, filename=null, funds=funds, errorMessage=errorMessage, (err, result) => {
-                if (err) return dbFail.failSafe(err, res);
-                return res.send({"success": false, "data": quote, "message": errorMessage});
-              })
-            }
-            else{
-              text = `update transactions set sell_state = 'UNCOMMITTED', num_stocks = $2 where transactionnum = $1`
-              values = [transactionNum, num_stocks_to_sell]
-              query(text, values, async (err, result) => {
-                if (err) return dbFail.failSafe(err, res);
-                current_unix_time = Math.floor(new Date().getTime()); 
-                return res.send({"success": true, "data": quote, "message": "SELL successful, confirm or cancel"});
-              })
-            }
+            text = `update transactions set sell_state = 'UNCOMMITTED', num_stocks = $2 where transactionnum = $1`
+            values = [transactionNum, num_stocks_to_sell]
+            query(text, values, async (err, result) => {
+              if (err) return dbFail.failSafe(err, res);
+              current_unix_time = Math.floor(new Date().getTime()); 
+              return res.send({"success": true, "data": quote, "message": "SELL successful, confirm or cancel"});
+            })
           }
-        })
+        }
       })
     })
   })
@@ -296,7 +300,8 @@ router.post("/sell",
 Request Body Parameters
 @param userid
 */
-router.post("/commit_sell", 
+router.post("/commit_sell",
+  validate.userid(),  
   utils.getNextTransactionNumber,
   (req, res) => {
 
@@ -336,14 +341,17 @@ router.post("/commit_sell",
           })
         }
         else{
-          accountTransaction(transactionNum=transactionNum, action="add", username=username, funds=funds, stockSymbol=stockSymbol, (err, result) => {
+          systemEvent(transactionNum=transactionNum, command="COMMIT_SELL", username=username, stockSymbol=stockSymbol, filename=null, funds=funds, (err, result) => {
             if (err) return dbFail.failSafe(err, res);
-            text = `with a as (update transactions set sell_state = 'COMMITTED' where transactionnum = $1)
-                  update user_stocks set num_stocks = num_stocks - $3 where userid = $2 and stocksymbol = $4`
-            values = [sellTransactionNum, username, num_stocks_to_sell, stockSymbol]
-            query(text, values, async (err, result) => {
+            accountTransaction(transactionNum=transactionNum, action="add", username=username, funds=funds, stockSymbol=stockSymbol, (err, result) => {
               if (err) return dbFail.failSafe(err, res);
-              return res.send({"success": true, "data": null, "message": "COMMIT_SELL successful"});
+              text = `with a as (update transactions set sell_state = 'COMMITTED' where transactionnum = $1)
+                    update user_stocks set num_stocks = num_stocks - $3 where userid = $2 and stocksymbol = $4`
+              values = [sellTransactionNum, username, num_stocks_to_sell, stockSymbol]
+              query(text, values, async (err, result) => {
+                if (err) return dbFail.failSafe(err, res);
+                return res.send({"success": true, "data": null, "message": "COMMIT_SELL successful"});
+              })
             })
           })
         }
@@ -358,6 +366,7 @@ Request Body Parameters
 @param userid
 */
 router.post("/cancel_sell", 
+  validate.userid(), 
   utils.getNextTransactionNumber,
   (req, res) => {
 
@@ -414,7 +423,8 @@ Request Body Parameters
 @param stockSymbol
 @param amount
 */
-router.post("/set_buy_amount", 
+router.post("/set_buy_amount",
+  validate.buy_sell(),
   utils.getNextTransactionNumber,
   (req, res) => {
     command='SET_BUY_AMOUNT'
@@ -439,35 +449,38 @@ router.post("/set_buy_amount",
           buys_total = result.rows[0].buys_total
           funds_needed = result.rows[0].user_total + buys_total
           if (funds_needed >= buy_amount){
-            if (buys_total > 0){
-              //Update
-              update_buy = `with buy_update as (update buys set buy_amount = $3
-              where userid = $1 and stocksymbol = $2)
-              update user_funds set funds = funds + $4 - $3
-              where userid = $1`
-              values = [username,stock_symbol,buy_amount,buys_total]
-              query(update_buy, values, async (err, result) => {
-                if (err) return dbFail.failSafe(err, res);
-                accountTransaction(transactionNum,'remove',username,buy_amount,null, (err, result) => {
+            systemEvent(transactionNum=transactionNum, command="SET_BUY_AMOUNT", username=username, stockSymbol=stock_symbol, filename=null, funds=buy_amount, (err, result) => {
+              if (err) return dbFail.failSafe(err, res);
+              if (buys_total > 0){
+                //Update
+                update_buy = `with buy_update as (update buys set buy_amount = $3
+                where userid = $1 and stocksymbol = $2)
+                update user_funds set funds = funds + $4 - $3
+                where userid = $1`
+                values = [username,stock_symbol,buy_amount,buys_total]
+                query(update_buy, values, async (err, result) => {
                   if (err) return dbFail.failSafe(err, res);
-                  return res.send({"success": true, "data": null, "message": "SET_BUY_AMOUNT successful"});
+                  accountTransaction(transactionNum,'remove',username,buy_amount,null, (err, result) => {
+                    if (err) return dbFail.failSafe(err, res);
+                    return res.send({"success": true, "data": null, "message": "SET_BUY_AMOUNT successful"});
+                  })
                 })
-              })
-            } else {
-              //Insert
-              insert_buy = `with buy_insert as (insert into buys (userid, buy_amount, is_active, stocksymbol)
-              values ($1,$2,$3,$4))
-              update user_funds set funds = funds - $2
-              where userid = $1`
-              values = [username,buy_amount,false,stock_symbol]
-              query(subtract_holdings, [username,buy_amount], (err, result) => {
-                if (err) return dbFail.failSafe(err, res);
-                accountTransaction(transactionNum,'remove',username,buy_amount,null, (err, result) => {
+              } else {
+                //Insert
+                insert_buy = `with buy_insert as (insert into buys (userid, buy_amount, is_active, stocksymbol)
+                values ($1,$2,$3,$4))
+                update user_funds set funds = funds - $2
+                where userid = $1`
+                values = [username,buy_amount,false,stock_symbol]
+                query(subtract_holdings, [username,buy_amount], (err, result) => {
                   if (err) return dbFail.failSafe(err, res);
-                  return res.send({"success": true, "data": null, "message": "SET_BUY_AMOUNT successful"});
+                  accountTransaction(transactionNum,'remove',username,buy_amount,null, (err, result) => {
+                    if (err) return dbFail.failSafe(err, res);
+                    return res.send({"success": true, "data": null, "message": "SET_BUY_AMOUNT successful"});
+                  })
                 })
-              })
-            }
+              }
+            })
           } else {
             //error log
             errorEvent(transactionNum,command,username,stock_symbol,null,buy_amount,"Insufficient Funds",(err, result) => {
@@ -484,9 +497,10 @@ router.post("/set_buy_amount",
 Request Body Parameters
 @param userid
 @param StockSymbol
-@param amounnt
+@param amount
 */
-router.post("/set_buy_trigger", 
+router.post("/set_buy_trigger",
+  validate.buy_sell(), 
   utils.getNextTransactionNumber,
   (req, res) => {
     command='SET_BUY_TRIGGER'
@@ -517,6 +531,7 @@ router.post("/set_buy_trigger",
         query(update_query,[id,trigger_amount,true],async (err, result) => {
           if (err) return dbFail.failSafe(err, res);
           //User Command Log
+          
           userCommand(transactionNum,command,username,stock_symbol,null,trigger_amount, (err, result) => {
             if (err) return dbFail.failSafe(err, res);
             return res.send({"success": true, "data": null, "message": "SET_BUY_TRIGGER successful"});
@@ -532,6 +547,7 @@ Request Body Parameters
 @param StockSymbol
 */
 router.post("/cancel_set_buy", 
+  validate.quote(),
   utils.getNextTransactionNumber,
   (req, res) => {
     command='CANCEL_SET_BUY'
@@ -580,8 +596,12 @@ router.post("/cancel_set_buy",
 
 
 
-
+/*
+Request Body Parameters
+@param filename
+*/
 router.post("/dumplog", 
+  validate.dumplog(),
   utils.getNextTransactionNumber,
   (req, res) => {
   filename = req.body.filename
@@ -596,7 +616,13 @@ router.post("/dumplog",
 });
 
 
-router.post("/user_dumplog", 
+/*
+Request Body Parameters
+@param filename
+@param userid
+*/
+router.post("/user_dumplog",
+  validate.user_dumplog(), 
   utils.getNextTransactionNumber,
   (req, res) => {
   username = req.body.userid
@@ -615,10 +641,11 @@ router.post("/user_dumplog",
 /*
 Request Body Parameters
 @param userid
-@param stockSymbol
+@param StockSymbol
 @param amount
 */
 router.post("/set_sell_amount", 
+  validate.buy_sell(),
   utils.getNextTransactionNumber,
   (req, res) => {
     command='SET_SELL_AMOUNT'
@@ -692,7 +719,8 @@ Request Body Parameters
 @param StockSymbol
 @param amounnt
 */
-router.post("/set_sell_trigger", 
+router.post("/set_sell_trigger",
+  validate.buy_sell(),
   utils.getNextTransactionNumber,
   (req, res) => {
     command='SET_SELL_TRIGGER'
@@ -714,33 +742,33 @@ router.post("/set_sell_trigger",
             })
         }
         else {
-          id = result.rows[0].sell_trigger_id
-          sell_amount = result.rows[0].sell_amount
-          //Check if trigger is active 
-          if (result.rows[0].is_active){
-            //Just update trigger
-            update_query = `update sells set 
-              sell_trigger_threshold = $3,is_active = $4 where userid = $1 and stocksymbol = $2`
-              values=[username,stock_symbol,trigger_amount,true]
+          systemEvent(transactionNum=transactionNum, command="SET_SELL_TRIGGER", username=username, stockSymbol=stock_symbol, filename=null, funds=trigger_amount, (err, result) => {
+            if (err) return dbFail.failSafe(err, res);
+            id = result.rows[0].sell_trigger_id
+            sell_amount = result.rows[0].sell_amount
+            //Check if trigger is active 
+            if (result.rows[0].is_active){
+              //Just update trigger
+              update_query = `update sells set 
+                sell_trigger_threshold = $3,is_active = $4 where userid = $1 and stocksymbol = $2`
+                values=[username,stock_symbol,trigger_amount,true]
+                query(update_query,values,async (err, result) => {
+                  if (err) return dbFail.failSafe(err, res);
+                  return res.send({"success": true, "data": null, "message": "SET_SELL_TRIGGER successful"});
+                })
+            } else {
+              //Update trigger and decrement stock table 
+              update_query = `with update_sells as (update sells set 
+              sell_trigger_threshold = $3,is_active = $4 where userid = $1 and stocksymbol = $2)
+              update user_stocks set num_stocks = num_stocks - $5
+              where userid = $1 and stocksymbol = $2`
+              values=[username,stock_symbol,trigger_amount,true,sell_amount]
               query(update_query,values,async (err, result) => {
                 if (err) return dbFail.failSafe(err, res);
                 return res.send({"success": true, "data": null, "message": "SET_SELL_TRIGGER successful"});
               })
-          } else {
-            //Update trigger and decrement stock table 
-            update_query = `with update_sells as (update sells set 
-            sell_trigger_threshold = $3,is_active = $4 where userid = $1 and stocksymbol = $2)
-            update user_stocks set num_stocks = num_stocks - $5
-            where userid = $1 and stocksymbol = $2`
-            values=[username,stock_symbol,trigger_amount,true,sell_amount]
-            query(update_query,values,async (err, result) => {
-              if (err) return dbFail.failSafe(err, res);
-              systemEvent(transactionNum,command,username,stock_symbol,null,sell_amount,(err, result) => {
-                if (err) return dbFail.failSafe(err, res);
-                return res.send({"success": true, "data": null, "message": "SET_SELL_TRIGGER successful"});
-              })
-            })
-          }
+            }
+          })
         }
       })
     })
@@ -753,6 +781,7 @@ Request Body Parameters
 @param StockSymbol
 */
 router.post("/cancel_set_sell", 
+  validate.quote(),
   utils.getNextTransactionNumber,
   (req, res) => {
     command='CANCEL_SET_SELL'
@@ -785,11 +814,14 @@ router.post("/cancel_set_sell",
               where userid = $1 and stocksymbol = $2`
               query(reset_funds, [username,stock_symbol,sell_amount], (err, result) => {
                 if (err) return dbFail.failSafe(err, res);
-                accountTransaction(transactionNum,'add',username,sell_amount,null, (err, result) => {
+                systemEvent(transactionNum=transactionNum, command="CANCEL_SET_SELL", username=username, stockSymbol=stock_symbol, filename=null, funds=null, (err, result) => {
                   if (err) return dbFail.failSafe(err, res);
-                  return res.send({"success": true, "data": null, "message": "CANCEL_SET_SELL successful"});
-                })
+                  accountTransaction(transactionNum,'add',username,sell_amount,null, (err, result) => {
+                    if (err) return dbFail.failSafe(err, res);
+                    return res.send({"success": true, "data": null, "message": "CANCEL_SET_SELL successful"});
+                  })
               })
+            })
           })
         }
       })
@@ -797,7 +829,12 @@ router.post("/cancel_set_sell",
   }
 )
 
+/*
+Request Body Parameters
+@param userid
+*/
 router.post("/display_summary", 
+  validate.userid(),
   utils.getNextTransactionNumber,
   (req, res) => {
   username = req.body.userid
