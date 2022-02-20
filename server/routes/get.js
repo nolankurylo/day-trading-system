@@ -6,7 +6,7 @@ const dbFail = require("../tools/dbFailSafe");
 var query = require("../tools/queryDatabase");
 var quoteServer = require('../LogTypes/quoteServer')
 var userCommand = require('../LogTypes/userCommand')
-var quoteServer2 = require('../quoteServer/quote')
+var quote = require('../quoteServer/quote')
 var utils = require('../tools/utils')
 
 router.get("/", (req, res) => {
@@ -27,10 +27,10 @@ router.get("/quote",
   transactionNum=req.body.nextTransactionNum
   stockSymbol = req.body.StockSymbol
 
-  quote = quoteServer2.getQuote(stockSymbol, username)
-  price = quote.Quoteprice
-  quoteServerTime = quote.timestamp
-  cryptoKey = quote.cryptokey
+  returnedQuote = quote.getQuote(stockSymbol, username)
+  price = returnedQuote.Quoteprice
+  quoteServerTime = returnedQuote.timestamp
+  cryptoKey = returnedQuote.cryptokey
 
   userCommand(transactionNum=transactionNum, command="QUOTE", username=username, stocksymbol=stockSymbol, filename=null, funds=null, (err, result) => {
     if (err) return dbFail.failSafe(err, res);
@@ -49,7 +49,7 @@ Request Body Parameters
 router.get("/get_quote", (req,res) => {
   stockSymbol = req.body.stockSymbol
   username = req.body.userid
-  return res.send(quoteServer2.getQuote(stockSymbol, username));
+  return res.send(quote.getQuote(stockSymbol, username));
 })
 
 
