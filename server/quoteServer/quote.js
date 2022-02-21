@@ -26,7 +26,7 @@ function getQuote(sym_raw, user) {
         "SYM": sym,
         "username": user,
         "timestamp": new Date().getTime(),
-        "cryptographickey": base64url(crypto.randomBytes(20))
+        "cryptokey": base64url(crypto.randomBytes(20))
     }
     return quoteObj
 }
