@@ -37,7 +37,7 @@ Request Body Parameters
 @param userid
 @param StockSymbol 
 */
-router.get("/quote", 
+router.post("/quote", 
   validate.quote(),
   utils.getNextTransactionNumber,
   async (req, res) => {
