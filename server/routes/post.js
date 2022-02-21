@@ -10,8 +10,8 @@ const errorEvent = require("../LogTypes/errorEvent");
 var quoteServer = require("../LogTypes/quoteServer")
 var quote = require('../quoteServer/quote')
 var dumplog = require('../tools/dumplog')
-var fs = require('fs');
 const validate = require('../tools/validate');
+const AWS = require('aws-sdk');
 
 
 /*
@@ -607,12 +607,29 @@ router.post("/dumplog",
     dumplog(null, (err, result) => {
       if (err) return dbFail.failSafe(err, res);
       
-      dir = "./Logs/"+filename+".xml"
-      fs.writeFile(dir, result, function(err) {
-          if(err) console.log(err);
-      }); 
+      saved_file = filename+".xml"
 
-      return res.send({"success": true, "data": result, "message": "dumplog successful"});
+      // Setting up S3 upload parameters
+      params = {
+        Bucket: process.env.S3_BUCKET,
+        Key: "dumplogs/" + saved_file, // File name you want to save as in S3
+        Body: result
+      };
+
+      s3 = new AWS.S3({
+        accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
+      });
+
+      // Uploading files to the bucket
+      s3.upload(params, function(err, data) {
+        if (err) {
+          return res.send({"success": false, "data": err, "message": "dumplog failed"});
+        }
+        return res.send({"success": true, "data": null, "message": `dumplog successful in ${data.Location}`});
+      });
+
+      
     })
   })
 });
@@ -634,7 +651,28 @@ router.post("/user_dumplog",
     if (err) return dbFail.failSafe(err, res);
     dumplog(username, (err, result) => {
       if (err) return dbFail.failSafe(err, res);
-      return res.send({"success": true, "data": result, "message": "user dumplog successful"});
+      
+      saved_file = filename+".xml"
+
+      // Setting up S3 upload parameters
+      params = {
+        Bucket: process.env.S3_BUCKET,
+        Key: "dumplogs/" + saved_file, // File name you want to save as in S3
+        Body: result
+      };
+
+      s3 = new AWS.S3({
+        accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
+      });
+
+      // Uploading files to the bucket
+      s3.upload(params, function(err, data) {
+        if (err) {
+          return res.send({"success": false, "data": err, "message": "user dumplog failed"});
+        }
+        return res.send({"success": true, "data": null, "message": `user dumplog successful in ${data.Location}`});
+      });
     })
   })
 });
