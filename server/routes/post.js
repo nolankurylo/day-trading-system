@@ -556,37 +556,34 @@ router.post("/cancel_set_buy",
     stock_symbol = req.body.StockSymbol
     find_buy = `select * from buys where userid = $1 and stockSymbol = $2`
     //Check if a Set Buy exists for user and stock
-    query(find_buy, [username,stock_symbol], async (err, result) => {
+    userCommand(transactionNum,command,username,stock_symbol,null,null, (err, result) => {
       if (err) return dbFail.failSafe(err, res);
-      if (result.rowCount == 0){
-        userCommand(transactionNum,command,username,stock_symbol,null,null, (err, result) => {
-          if (err) return dbFail.failSafe(err, res);
-          errorEvent(transactionNum,command,username,stock_symbol,null,null,"No Buy To Cancel",(err, result) => {
-            if (err) return dbFail.failSafe(err, res);
-            return res.send({"success": false, "data": null, "message": "Buy trigger not found"});
-          })
-        })
-      }
-      else {
-        buy_amount = result.rows[0].buy_amount
-        id = result.rows[0].buy_trigger_id
-        // delete from buys table
-        delete_query = `delete from buys 
-        where buy_trigger_id = $1`
-        query(delete_query,[id],async (err, result) => {
-          if (err) return dbFail.failSafe(err, res);
-          //User Command Log
-          userCommand(transactionNum,command,username,stock_symbol,null,null, (err, result) => {
-            if (err) return dbFail.failSafe(err, res);
-            accountTransaction(transactionNum,'add',username,buy_amount,null, (err, result) => {
+      query(find_buy, [username,stock_symbol], async (err, result) => {
+        if (err) return dbFail.failSafe(err, res);
+        if (result.rowCount == 0){
+            errorEvent(transactionNum,command,username,stock_symbol,null,null,"No Buy To Cancel",(err, result) => {
               if (err) return dbFail.failSafe(err, res);
-              return res.send({"success": true, "data": null, "message": "CANCEL_SET_BUY successful"});
+              return res.send({"success": false, "data": null, "message": "Buy trigger not found"});
             })
+        }
+        else {
+          buy_amount = result.rows[0].buy_amount
+          id = result.rows[0].buy_trigger_id
+          // delete from buys table
+          delete_query = `delete from buys 
+          where buy_trigger_id = $1`
+          query(delete_query,[id],async (err, result) => {
+            if (err) return dbFail.failSafe(err, res);
+              accountTransaction(transactionNum,'add',username,buy_amount,null, (err, result) => {
+                if (err) return dbFail.failSafe(err, res);
+                return res.send({"success": true, "data": null, "message": "CANCEL_SET_BUY successful"});
+              })
           })
-        })
-      }
+        }
+      })
     })
-});
+  }
+);
 
 
 
