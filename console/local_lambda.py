@@ -303,7 +303,7 @@ def command_breakdown(params):
 def lambda_handler(): 
     start = time.perf_counter()
 
-    file_name = "workloads/1userWorkLoad.txt"
+    file_name = "workloads/1add.txt"
 
     workload_file = open(file_name, 'r')
     

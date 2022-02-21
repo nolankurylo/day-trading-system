@@ -23,7 +23,7 @@ def command_breakdown(params):
 
         URL = API_URL + '/add'
         
-        r = requests.get(URL, json=body)
+        r = requests.post(URL, json=body)
 
         
 
