@@ -9,12 +9,26 @@ var utils = require('../tools/utils')
 const validate = require('../tools/validate');
 var dumplog = require('../tools/dumplog')
 
+
 /*
 Request Body Parameters
 none
 */
 router.get("/", (req, res) => {
     return res.send("Hello world, NALT connected! 🌝");
+});
+
+/*
+Request Body Parameters
+none
+*/
+router.get("/test",  (req, res) => {
+
+  query("select * from users",[],async (err, result) => {
+    if (err) return dbFail.failSafe(err, res);
+    return res.send(result);
+  })
+  
 });
 
 

@@ -4,7 +4,7 @@ import requests
 import os
 
 
-API_URL = 'http://ec2-15-222-26-11.ca-central-1.compute.amazonaws.com'
+API_URL = 'http://localhost:3000'
 
 def command_breakdown(params):
 
@@ -23,7 +23,8 @@ def command_breakdown(params):
 
         URL = API_URL + '/add'
         
-        r = requests.get(URL, json=body)
+        r = requests.post(URL, json=body)
+        print(r.text)
 
         
 
@@ -40,6 +41,7 @@ def command_breakdown(params):
         URL = API_URL + '/quote'
         
         r = requests.get(URL, json=body)
+        print(r.text)
 
         
 
@@ -58,6 +60,7 @@ def command_breakdown(params):
         URL = API_URL + '/buy'
         
         r = requests.post(URL, json=body)
+        print(r.text)
 
         
 
@@ -72,6 +75,7 @@ def command_breakdown(params):
         URL = API_URL + '/commit_buy'
         
         r = requests.post(URL, json=body)
+        print(r.text)
         
 
     elif cmd == 'CANCEL_BUY':
@@ -84,6 +88,7 @@ def command_breakdown(params):
         URL = API_URL + '/cancel_buy'
 
         r = requests.post(URL, json=body)
+        print(r.text)
 
         
 
@@ -101,6 +106,7 @@ def command_breakdown(params):
         URL = API_URL + '/sell'
         
         r = requests.post(URL, json=body)
+        print(r.text)
 
         
 
@@ -114,6 +120,7 @@ def command_breakdown(params):
         URL = API_URL + '/commit_sell'
 
         r = requests.post(URL, json=body)
+        print(r.text)
 
         
 
@@ -128,6 +135,7 @@ def command_breakdown(params):
         URL = API_URL + '/cancel_sell'
 
         r = requests.post(URL, json=body)
+        print(r.text)
 
         
 
@@ -146,6 +154,7 @@ def command_breakdown(params):
         URL = API_URL + '/set_buy_amount'
         
         r = requests.post(URL, json=body)
+        print(r.text)
 
         
 
@@ -162,7 +171,7 @@ def command_breakdown(params):
         URL = API_URL + '/cancel_set_buy'
         
         r = requests.post(URL, json=body)
-        return (r.json())
+        print(r.text)
         
 
     elif cmd == 'SET_BUY_TRIGGER':
@@ -180,6 +189,7 @@ def command_breakdown(params):
         URL = API_URL + '/set_buy_trigger'
         
         r = requests.post(URL, json=body)
+        print(r.text)
 
         
 
@@ -198,6 +208,7 @@ def command_breakdown(params):
         URL = API_URL + '/set_sell_amount'
         
         r = requests.post(URL, json=body)
+        print(r.text)
 
         
 
@@ -216,6 +227,7 @@ def command_breakdown(params):
         URL = API_URL + '/set_sell_trigger'
         
         r = requests.post(URL, json=body)
+        print(r.text)
 
         
 
@@ -232,6 +244,7 @@ def command_breakdown(params):
         URL = API_URL + '/cancel_set_sell'
         
         r = requests.post(URL, json=body)
+        print(r.text)
 
         
 
@@ -248,6 +261,7 @@ def command_breakdown(params):
         URL = API_URL + '/user_dumplog'
         
         r = requests.post(URL, json=body)
+        print(r.text)
 
         
 
@@ -262,6 +276,7 @@ def command_breakdown(params):
         URL = API_URL + '/dumplog'
         
         r = requests.post(URL, json=body)
+        print(r.text)
 
         
         
@@ -276,6 +291,7 @@ def command_breakdown(params):
         URL = API_URL + '/display_summary'
         
         r = requests.post(URL, json=body)
+        print(r.text)
 
         
 
@@ -284,11 +300,10 @@ def command_breakdown(params):
 
 # Run this file with python3 lambda_function.py workload/{filename}
 
-def lambda_handler(event, context): 
+def lambda_handler(): 
     start = time.perf_counter()
-    print(start)
 
-    file_name = event['file_path']
+    file_name = "workloads/1userWorkLoad.txt"
 
     workload_file = open(file_name, 'r')
     
@@ -299,11 +314,13 @@ def lambda_handler(event, context):
     for command in command_list:
         index,cmd_string = command.split()
         params = cmd_string.split(',')
-        command_breakdown(params)
+        output = command_breakdown(params)
 
     end = time.perf_counter()
 
     return {
         'statusCode': 200,
-        'body': json.dumps('Total Time: ' + str(end - start))
+        'body': json.dumps(output)
     }
+
+lambda_handler()

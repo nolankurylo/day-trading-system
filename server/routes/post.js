@@ -10,8 +10,8 @@ const errorEvent = require("../LogTypes/errorEvent");
 var quoteServer = require("../LogTypes/quoteServer")
 var quote = require('../quoteServer/quote')
 var dumplog = require('../tools/dumplog')
-var fs = require('fs');
 const validate = require('../tools/validate');
+const AWS = require('aws-sdk');
 
 
 /*
@@ -556,37 +556,34 @@ router.post("/cancel_set_buy",
     stock_symbol = req.body.StockSymbol
     find_buy = `select * from buys where userid = $1 and stockSymbol = $2`
     //Check if a Set Buy exists for user and stock
-    query(find_buy, [username,stock_symbol], async (err, result) => {
+    userCommand(transactionNum,command,username,stock_symbol,null,null, (err, result) => {
       if (err) return dbFail.failSafe(err, res);
-      if (result.rowCount == 0){
-        userCommand(transactionNum,command,username,stock_symbol,null,null, (err, result) => {
-          if (err) return dbFail.failSafe(err, res);
-          errorEvent(transactionNum,command,username,stock_symbol,null,null,"No Buy To Cancel",(err, result) => {
-            if (err) return dbFail.failSafe(err, res);
-            return res.send({"success": false, "data": null, "message": "Buy trigger not found"});
-          })
-        })
-      }
-      else {
-        buy_amount = result.rows[0].buy_amount
-        id = result.rows[0].buy_trigger_id
-        // delete from buys table
-        delete_query = `delete from buys 
-        where buy_trigger_id = $1`
-        query(delete_query,[id],async (err, result) => {
-          if (err) return dbFail.failSafe(err, res);
-          //User Command Log
-          userCommand(transactionNum,command,username,stock_symbol,null,null, (err, result) => {
-            if (err) return dbFail.failSafe(err, res);
-            accountTransaction(transactionNum,'add',username,buy_amount,null, (err, result) => {
+      query(find_buy, [username,stock_symbol], async (err, result) => {
+        if (err) return dbFail.failSafe(err, res);
+        if (result.rowCount == 0){
+            errorEvent(transactionNum,command,username,stock_symbol,null,null,"No Buy To Cancel",(err, result) => {
               if (err) return dbFail.failSafe(err, res);
-              return res.send({"success": true, "data": null, "message": "CANCEL_SET_BUY successful"});
+              return res.send({"success": false, "data": null, "message": "Buy trigger not found"});
             })
+        }
+        else {
+          buy_amount = result.rows[0].buy_amount
+          id = result.rows[0].buy_trigger_id
+          // delete from buys table
+          delete_query = `delete from buys 
+          where buy_trigger_id = $1`
+          query(delete_query,[id],async (err, result) => {
+            if (err) return dbFail.failSafe(err, res);
+              accountTransaction(transactionNum,'add',username,buy_amount,null, (err, result) => {
+                if (err) return dbFail.failSafe(err, res);
+                return res.send({"success": true, "data": null, "message": "CANCEL_SET_BUY successful"});
+              })
           })
-        })
-      }
+        }
+      })
     })
-});
+  }
+);
 
 
 
@@ -599,20 +596,36 @@ router.post("/dumplog",
   utils.getNextTransactionNumber,
   (req, res) => {
   filename = req.body.filename
-  var n = filename.indexOf('.');
-  filename = filename.substring(0, n != -1 ? n : filename.length);
+  filename = filename.replace('./','')
   transactionNum = req.body.nextTransactionNum
   userCommand(transactionNum=transactionNum, command="DUMPLOG", username=null, stockSymbol=null, filename=filename, funds=null, (err, result) => {
     if (err) return dbFail.failSafe(err, res);
     dumplog(null, (err, result) => {
       if (err) return dbFail.failSafe(err, res);
       
-      dir = "./Logs/"+filename+".xml"
-      fs.writeFile(dir, result, function(err) {
-          if(err) console.log(err);
-      }); 
+      saved_file = filename+".xml"
 
-      return res.send({"success": true, "data": result, "message": "dumplog successful"});
+      // Setting up S3 upload parameters
+      params = {
+        Bucket: process.env.S3_BUCKET,
+        Key: "dumplogs/" + saved_file, // File name you want to save as in S3
+        Body: result
+      };
+
+      s3 = new AWS.S3({
+        accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
+      });
+
+      // Uploading files to the bucket
+      s3.upload(params, function(err, data) {
+        if (err) {
+          return res.send({"success": false, "data": err, "message": "dumplog failed"});
+        }
+        return res.send({"success": true, "data": null, "message": `dumplog successful in ${data.Location}`});
+      });
+
+      
     })
   })
 });
@@ -634,7 +647,28 @@ router.post("/user_dumplog",
     if (err) return dbFail.failSafe(err, res);
     dumplog(username, (err, result) => {
       if (err) return dbFail.failSafe(err, res);
-      return res.send({"success": true, "data": result, "message": "user dumplog successful"});
+      
+      saved_file = filename+".xml"
+
+      // Setting up S3 upload parameters
+      params = {
+        Bucket: process.env.S3_BUCKET,
+        Key: "dumplogs/" + saved_file, // File name you want to save as in S3
+        Body: result
+      };
+
+      s3 = new AWS.S3({
+        accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
+      });
+
+      // Uploading files to the bucket
+      s3.upload(params, function(err, data) {
+        if (err) {
+          return res.send({"success": false, "data": err, "message": "user dumplog failed"});
+        }
+        return res.send({"success": true, "data": null, "message": `user dumplog successful in ${data.Location}`});
+      });
     })
   })
 });
