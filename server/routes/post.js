@@ -596,8 +596,7 @@ router.post("/dumplog",
   utils.getNextTransactionNumber,
   (req, res) => {
   filename = req.body.filename
-  var n = filename.indexOf('.');
-  filename = filename.substring(0, n != -1 ? n : filename.length);
+  filename = filename.replace('./','')
   transactionNum = req.body.nextTransactionNum
   userCommand(transactionNum=transactionNum, command="DUMPLOG", username=null, stockSymbol=null, filename=filename, funds=null, (err, result) => {
     if (err) return dbFail.failSafe(err, res);
