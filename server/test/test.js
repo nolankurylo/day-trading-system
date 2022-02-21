@@ -1,22 +1,20 @@
 var assert = require('assert');
+var expect = require('chai').expect
+var request = require("request");
+
+var base_url = "http://localhost:3000"
 
 // example test from documentation
-describe('Array', function () {
-  describe('#indexOf()', function () {
-    it('should return -1 when the value is not present', function () {
-      assert.equal([1, 2, 3].indexOf(4), -1);
+describe('Unit testing GET / route', function() {
+  it('should return a string', function(done) {
+    request( base_url + "/", function(error, response, body) {
+      expect(body).to.equal("Hello world, NALT connected! 🌝");
+      done();
     });
   });
 });
 
 /* TEST TO BE ADDED */
-
-/*
-Request Body Parameters
-@param userid
-@param StockSymbol 
-*/
-// router.get("/quote") test
 
 /*
 Request Body Parameters
