@@ -4,7 +4,7 @@ aws configure
 2. Login to ECR:
 aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin public.ecr.aws/d7o4k9p4
 
-3. CD into folder with Dockerfile and build:
+3. CD into folder with Dockerfile and build (note add --platform=linux/amd64 before -t if using m1):
 docker build -t public.ecr.aws/d7o4k9p4/seng468-server:latest . 
 
 4. Locally run the docker container for testing:
