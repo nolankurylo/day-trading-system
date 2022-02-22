@@ -21,7 +21,7 @@ create table user_funds(
 	PRIMARY KEY(funds_id),
   	CONSTRAINT fk_userid
       FOREIGN KEY(userid) 
-         REFERENCES users(userid)
+         REFERENCES users(userid) ON DELETE CASCADE
 );
 
 create table buys(
@@ -34,7 +34,7 @@ create table buys(
 	PRIMARY KEY(buy_trigger_id),
   	CONSTRAINT fk_userid
       FOREIGN KEY(userid) 
-         REFERENCES users(userid)
+         REFERENCES users(userid) ON DELETE CASCADE
 );
 
 create table user_stocks(
@@ -45,7 +45,7 @@ create table user_stocks(
 	PRIMARY KEY(id),
   	CONSTRAINT fk_userid
       FOREIGN KEY(userid) 
-         REFERENCES users(userid)
+         REFERENCES users(userid) ON DELETE CASCADE
 );
 
 create table sells(
@@ -58,7 +58,7 @@ create table sells(
 	PRIMARY KEY(sell_trigger_id),
   	CONSTRAINT fk_userid
       FOREIGN KEY(userid) 
-         REFERENCES users(userid)
+         REFERENCES users(userid) ON DELETE CASCADE
 );
 
 create table transactions(
@@ -78,11 +78,14 @@ create table transactions(
     action varchar(100) NULL,
     errorMessage varchar(250) NULL,
     debugMessage varchar(250) NULL,
-    buy_state varchar(20), NULL,
-    sell_state varchar(20), NULL,
+    buy_state varchar(20) NULL,
+    sell_state varchar(20) NULL,
     num_stocks float NULL default 0,
  	PRIMARY KEY(id)
 );
 
 INSERT INTO users (userid, user_password, user_email, role)
-VALUES ('admin', 'nalt123', 'test@yahoo.ca', 'admin');
+  VALUES ('admin', 'nalt123', 'test@yahoo.ca', 'admin');
+
+DELETE FROM users WHERE role='console';
+DELETE FROM transactions WHERE id != 0;
