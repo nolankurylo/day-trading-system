@@ -85,7 +85,7 @@ create table transactions(
 );
 
 INSERT INTO users (userid, user_password, user_email, role)
-  VALUES ('admin', 'nalt123', 'test@yahoo.ca', 'admin');
+  VALUES ('nolan', 'nalt123', 'test@yahoo.ca', 'admin');
 
 DELETE FROM users WHERE role='console';
 DELETE FROM transactions WHERE id != 0;
