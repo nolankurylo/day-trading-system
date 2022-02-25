@@ -115,13 +115,25 @@ describe("UNIT TEST: post '/buy' route", function () {
   it('TEST 200', function (done) {
     var obj = { method: 'POST',
                 url: base_url + "/buy", 
-                json: { userid: "nolan", StockSymbol: "ABC", amount: 300.00 }
+                json: { userid: "nolan", StockSymbol: "ABC", amount: 2000.00 }
               }
     request.post(obj, function(error, response, body) {
       expect(response.statusCode).to.equal(200);
       expect(body.success).to.equal(true);
       expect(body.data).to.be.an('object');
       expect(body.message).to.equal('BUY successful, confirm or cancel');
+      done();
+    });
+  });
+
+  // commit to push 
+  it('TEST 200', function (done) {
+    var obj = { method: 'POST',
+                url: base_url + "/commit_buy", 
+                json: { userid: "nolan" }
+              }
+    request.post(obj, function(error, response, body) {
+      expect(response.statusCode).to.equal(200);
       done();
     });
   });
@@ -168,6 +180,21 @@ Request Body Parameters
 @param userid
 */
 // router.post("/cancel_buy") test
+describe("UNIT TEST: post '/cancel_buy' route", function () {
+  it('TEST 200', function (done) {
+    var obj = { method: 'POST',
+                url: base_url + "/cancel_buy", 
+                json: { userid: "nolan" }
+              }
+    request.post(obj, function(error, response, body) {
+      expect(response.statusCode).to.equal(200);
+      expect(body.success).to.equal(true);
+      expect(body.data).to.equal(null);
+      expect(body.message).to.equal('CANCEL_BUY successful');
+      done();
+    });
+  });
+});
 
 /*
 Request Body Parameters
@@ -176,18 +203,64 @@ Request Body Parameters
 @param amount - that the user wants to sell of the stock
 */
 // router.post("/sell") test
+describe("UNIT TEST: post '/sell' route", function () {
+  it('TEST 200', function (done) {
+    var obj = { method: 'POST',
+                url: base_url + "/sell", 
+                json: { userid: "nolan", StockSymbol: "ABC", amount: 2 }
+              }
+    request.post(obj, function(error, response, body) {
+      expect(response.statusCode).to.equal(200);
+      expect(body.success).to.equal(true);
+      expect(body.data).to.be.an('object');
+      expect(body.data.current_price).to.be.above(0);
+      expect(body.message).to.equal('SELL successful, confirm or cancel');
+      done();
+    });
+  });
+});
 
 /*
 Request Body Parameters
 @param userid
 */
 // router.post("/commit_sell") 
+describe("UNIT TEST: post '/commit_sell' route", function () {
+  it('TEST 200', function (done) {
+    var obj = { method: 'POST',
+                url: base_url + "/commit_sell", 
+                json: { userid: "nolan" }
+              }
+    request.post(obj, function(error, response, body) {
+      expect(response.statusCode).to.equal(200);
+      expect(body.success).to.equal(true);
+      expect(body.data).to.equal(null);
+      expect(body.message).to.equal('COMMIT_SELL successful');
+      done();
+    });
+  });
+});
 
 /*
 Request Body Parameters
 @param userid
 */
 // router.post("/cancel_sell") test
+describe("UNIT TEST: post '/cancel_sell' route", function () {
+  it('TEST 200', function (done) {
+    var obj = { method: 'POST',
+                url: base_url + "/cancel_sell", 
+                json: { userid: "nolan" }
+              }
+    request.post(obj, function(error, response, body) {
+      expect(response.statusCode).to.equal(200);
+      expect(body.success).to.equal(true);
+      expect(body.data).to.equal(null);
+      expect(body.message).to.equal('CANCEL_SELL successful');
+      done();
+    });
+  });
+});
 
 /*
 Request Body Parameters
@@ -196,6 +269,21 @@ Request Body Parameters
 @param amount
 */
 // router.post("/set_buy_amount")
+describe("UNIT TEST: post '/set_buy_amount' route", function () {
+  it('TEST 200', function (done) {
+    var obj = { method: 'POST',
+                url: base_url + "/set_buy_amount", 
+                json: { userid: "nolan", StockSymbol: "ABC", amount: 200.00 }
+              }
+    request.post(obj, function(error, response, body) {
+      expect(response.statusCode).to.equal(200);
+      expect(body.success).to.equal(true);
+      expect(body.data).to.equal(null);
+      expect(body.message).to.equal('SET_BUY_AMOUNT successful');
+      done();
+    });
+  });
+});
 
 /*
 Request Body Parameters
@@ -204,6 +292,21 @@ Request Body Parameters
 @param amount
 */
 // router.post("/set_buy_trigger") test
+describe("UNIT TEST: post '/set_buy_trigger' route", function () {
+  it('TEST 200', function (done) {
+    var obj = { method: 'POST',
+                url: base_url + "/set_buy_trigger", 
+                json: { userid: "nolan", StockSymbol: "ABC", amount: 2 }
+              }
+    request.post(obj, function(error, response, body) {
+      expect(response.statusCode).to.equal(200);
+      expect(body.success).to.equal(true);
+      expect(body.data).to.equal(null);
+      expect(body.message).to.equal('SET_BUY_TRIGGER successful');
+      done();
+    });
+  });
+});
 
 /*
 Request Body Parameters
@@ -211,12 +314,42 @@ Request Body Parameters
 @param StockSymbol
 */
 // router.post("/cancel_set_buy") test
+describe("UNIT TEST: post '/cancel_set_buy' route", function () {
+  it('TEST 200', function (done) {
+    var obj = { method: 'POST',
+                url: base_url + "/cancel_set_buy", 
+                json: { userid: "nolan", StockSymbol: "ABC" }
+              }
+    request.post(obj, function(error, response, body) {
+      expect(response.statusCode).to.equal(200);
+      expect(body.success).to.equal(true);
+      expect(body.data).to.equal(null);
+      expect(body.message).to.equal('CANCEL_SET_BUY successful');
+      done();
+    });
+  });
+});
 
 /*
 Request Body Parameters
 @param filename
 */
 // router.post("/dumplog") test
+describe("UNIT TEST: post '/dumplog' route", function () {
+  it('TEST 200', function (done) {
+    var obj = { method: 'POST',
+                url: base_url + "/dumplog", 
+                json: { filename: "test.xml" }
+              }
+    request.post(obj, function(error, response, body) {
+      expect(response.statusCode).to.equal(200);
+      expect(body.success).to.equal(true);
+      expect(body.data).to.equal(null);
+      expect(body.message).to.be.a('string');
+      done();
+    });
+  });
+});
 
 /*
 Request Body Parameters
@@ -224,6 +357,21 @@ Request Body Parameters
 @param userid
 */
 // router.post("/user_dumplog") test
+describe("UNIT TEST: post '/user_dumplog' route", function () {
+  it('TEST 200', function (done) {
+    var obj = { method: 'POST',
+                url: base_url + "/user_dumplog", 
+                json: { filename: "test.xml", userid: "nolan" }
+              }
+    request.post(obj, function(error, response, body) {
+      expect(response.statusCode).to.equal(200);
+      expect(body.success).to.equal(true);
+      expect(body.data).to.equal(null);
+      expect(body.message).to.be.a('string');
+      done();
+    });
+  });
+});
 
 /*
 Request Body Parameters
@@ -232,6 +380,21 @@ Request Body Parameters
 @param amount
 */
 // router.post("/set_sell_amount") test
+describe("UNIT TEST: post '/set_sell_amount' route", function () {
+  it('TEST 200', function (done) {
+    var obj = { method: 'POST',
+                url: base_url + "/set_sell_amount", 
+                json: { userid: "nolan", StockSymbol: "ABC", amount: 200.00 }
+              }
+    request.post(obj, function(error, response, body) {
+      expect(response.statusCode).to.equal(200);
+      expect(body.success).to.equal(true);
+      expect(body.data).to.equal(null);
+      expect(body.message).to.equal('SET_SELL_AMOUNT successful');
+      done();
+    });
+  });
+});
 
 /*
 Request Body Parameters
@@ -240,6 +403,21 @@ Request Body Parameters
 @param amounnt
 */
 // router.post("/set_sell_trigger") test
+describe("UNIT TEST: post '/set_sell_trigger' route", function () {
+  it('TEST 200', function (done) {
+    var obj = { method: 'POST',
+                url: base_url + "/set_sell_trigger", 
+                json: { userid: "nolan", StockSymbol: "ABC", amount: 200.00 }
+              }
+    request.post(obj, function(error, response, body) {
+      expect(response.statusCode).to.equal(200);
+      expect(body.success).to.equal(true);
+      expect(body.data).to.equal(null);
+      expect(body.message).to.equal('SET_SELL_TRIGGER successful');
+      done();
+    });
+  });
+});
 
 /*
 Request Body Parameters
@@ -247,12 +425,42 @@ Request Body Parameters
 @param StockSymbol
 */
 // router.post("/cancel_set_sell") test
+describe("UNIT TEST: post '/cancel_set_sell' route", function () {
+  it('TEST 200', function (done) {
+    var obj = { method: 'POST',
+                url: base_url + "/cancel_set_sell", 
+                json: { userid: "nolan", StockSymbol: "ABC" }
+              }
+    request.post(obj, function(error, response, body) {
+      expect(response.statusCode).to.equal(200);
+      expect(body.success).to.equal(true);
+      expect(body.data).to.equal(null);
+      expect(body.message).to.equal('CANCEL_SET_SELL successful');
+      done();
+    });
+  });
+});
 
 /*
 Request Body Parameters
 @param userid
 */
 // router.post("/display_summary") test
+describe("UNIT TEST: post '/cancel_display_summaryset_sell' route", function () {
+  it('TEST 200', function (done) {
+    var obj = { method: 'POST',
+                url: base_url + "/cancel_set_sell", 
+                json: { userid: "nolan" }
+              }
+    request.post(obj, function(error, response, body) {
+      expect(response.statusCode).to.equal(200);
+      expect(body.success).to.equal(true);
+      expect(body.data).to.equal(null);
+      expect(body.message).to.equal('DISPLAY_SUMMARY successful');
+      done();
+    });
+  });
+});
 
 // debugEvent() test
 
