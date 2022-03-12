@@ -1,6 +1,12 @@
 var expect = require('chai').expect
 var request = require("request");
 
+const userCommand = require("../LogTypes/userCommand")
+const accountTransaction = require("../LogTypes/accountTransaction")
+const systemEvent = require("../LogTypes/systemEvent");
+const errorEvent = require("../LogTypes/errorEvent");
+var quoteServer = require("../LogTypes/quoteServer")
+
 var base_url = "http://localhost:3000"
 
 // example test for Hello World route on site using chai expect and request
@@ -446,10 +452,10 @@ Request Body Parameters
 @param userid
 */
 // router.post("/display_summary") test
-describe("UNIT TEST: post '/cancel_display_summaryset_sell' route", function () {
+describe("UNIT TEST: post '/display_summary' route", function () {
   it('TEST 200', function (done) {
     var obj = { method: 'POST',
-                url: base_url + "/cancel_set_sell", 
+                url: base_url + "/display_summary", 
                 json: { userid: "nolan" }
               }
     request.post(obj, function(error, response, body) {
@@ -463,11 +469,56 @@ describe("UNIT TEST: post '/cancel_display_summaryset_sell' route", function () 
 });
 
 // debugEvent() test
+describe("UNIT TEST: for debugEvent module export function", function () {
+  it('sanity test', function (done) {
+      debugEvent(transactionNum=-1, action="DISPLAY_SUMMARY", username="nolan", stockSymbol=null, filename=null, funds=null, debugMessage="DEBUG MESSAGE", (err, result) => {
+      console.log(result)
+      console.log(err)
+      done();
+    });
+  });
+});
 
 // systemEvent() test
+describe("UNIT TEST: for systemEvent module export function", function () {
+  it('sanity test', function (done) {
+      systemEvent(transactionNum=-1, command="SET_BUY_AMOUNT", username="nolan", stockSymbol="ABC", filename=null, funds=100.00, (err, result) => {
+      console.log(result)
+      console.log(err)
+      done();
+    });
+  });
+});
 
 // errorEvent() test
+describe("UNIT TEST: for errorEvent module export function", function () {
+  it('sanity test', function (done) {
+      errorEvent(transactionNum=-1, command="BUY", username="nolan", stockSymbol="ABC", filename=null, funds=100.00, errorMessage="Error Message", (err, result) => {
+      console.log(result)
+      console.log(err)
+      done();
+    });
+  });
+});
 
 // accountTransaction() test
+describe("UNIT TEST: for userCommand module export function", function () {
+  it('sanity test', function (done) {
+      accountTransaction(transactionNum=-2, action="add", username="nolan", funds=200.00, stockSymbol=null, (err, result) => {
+      console.log(result)
+      console.log(err)
+      done();
+    });
+  });
+});
 
 // usercommand() test
+describe("UNIT TEST: for userCommand module export function", function () {
+  it('sanity test', function (done) {
+      userCommand(transactionNum=-1, command="DISPLAY_SUMMARY", username="nolan", stockSymbol=null, filename=null, funds=null, (err, result) => {
+      console.log(result)
+      console.log(err)
+      done();
+    });
+  });
+});
