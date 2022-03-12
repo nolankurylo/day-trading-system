@@ -4,7 +4,7 @@ aws configure
 2. Login to ECR:
 aws ecr get-login-password --region ca-central-1 | docker login --username AWS --password-stdin 704268466190.dkr.ecr.ca-central-1.amazonaws.com
 
-3. CD into folder with Dockerfile and build:
+3. CD into folder with Dockerfile and build (note add --platform=linux/amd64 before -t if using m1):
 docker build -t seng468-console .
 docker tag seng468-console:latest 704268466190.dkr.ecr.ca-central-1.amazonaws.com/seng468-console:latest
 

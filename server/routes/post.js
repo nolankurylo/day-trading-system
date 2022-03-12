@@ -879,7 +879,7 @@ router.post("/display_summary",
   userCommand(transactionNum=transactionNum, command="DISPLAY_SUMMARY", username=username, stockSymbol=null, filename=null, funds=null, (err, result) => {
     if (err) return dbFail.failSafe(err, res);
     // get history of transactions, buys, and sells
-    return res.send({"success": true, "data": null, "message": "display summary successful"});
+    return res.send({"success": true, "data": null, "message": "DISPLAY_SUMMARY successful"});
 
   })
 });

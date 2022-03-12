@@ -39,7 +39,7 @@ def command_breakdown(params):
 
         URL = API_URL + '/quote'
         
-        r = requests.get(URL, json=body)
+        r = requests.post(URL, json=body)
 
         
 
