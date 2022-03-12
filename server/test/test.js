@@ -5,7 +5,10 @@ const userCommand = require("../LogTypes/userCommand")
 const accountTransaction = require("../LogTypes/accountTransaction")
 const systemEvent = require("../LogTypes/systemEvent");
 const errorEvent = require("../LogTypes/errorEvent");
+const debugEvent = require("../LogTypes/debugEvent");
 var quoteServer = require("../LogTypes/quoteServer")
+
+
 
 var base_url = "http://localhost:3000"
 
@@ -194,9 +197,9 @@ describe("UNIT TEST: post '/cancel_buy' route", function () {
               }
     request.post(obj, function(error, response, body) {
       expect(response.statusCode).to.equal(200);
-      expect(body.success).to.equal(true);
+      expect(body.success).to.equal(false);
       expect(body.data).to.equal(null);
-      expect(body.message).to.equal('CANCEL_BUY successful');
+      expect(body.message).to.equal('No uncommited BUYS for nolan');
       done();
     });
   });
@@ -219,7 +222,7 @@ describe("UNIT TEST: post '/sell' route", function () {
       expect(response.statusCode).to.equal(200);
       expect(body.success).to.equal(true);
       expect(body.data).to.be.an('object');
-      expect(body.data.current_price).to.be.above(0);
+      // expect(body.data.current_price).to.be.above(0);
       expect(body.message).to.equal('SELL successful, confirm or cancel');
       done();
     });
@@ -260,9 +263,9 @@ describe("UNIT TEST: post '/cancel_sell' route", function () {
               }
     request.post(obj, function(error, response, body) {
       expect(response.statusCode).to.equal(200);
-      expect(body.success).to.equal(true);
+      expect(body.success).to.equal(false);
       expect(body.data).to.equal(null);
-      expect(body.message).to.equal('CANCEL_SELL successful');
+      expect(body.message).to.equal('No uncommited SELLS for nolan');
       done();
     });
   });
@@ -345,7 +348,7 @@ describe("UNIT TEST: post '/dumplog' route", function () {
   it('TEST 200', function (done) {
     var obj = { method: 'POST',
                 url: base_url + "/dumplog", 
-                json: { filename: "test.xml" }
+                json: { filename: "dump-test" }
               }
     request.post(obj, function(error, response, body) {
       expect(response.statusCode).to.equal(200);
@@ -367,7 +370,7 @@ describe("UNIT TEST: post '/user_dumplog' route", function () {
   it('TEST 200', function (done) {
     var obj = { method: 'POST',
                 url: base_url + "/user_dumplog", 
-                json: { filename: "test.xml", userid: "nolan" }
+                json: { filename: "dump-user-test", userid: "nolan" }
               }
     request.post(obj, function(error, response, body) {
       expect(response.statusCode).to.equal(200);
@@ -394,9 +397,9 @@ describe("UNIT TEST: post '/set_sell_amount' route", function () {
               }
     request.post(obj, function(error, response, body) {
       expect(response.statusCode).to.equal(200);
-      expect(body.success).to.equal(true);
+      expect(body.success).to.equal(false);
       expect(body.data).to.equal(null);
-      expect(body.message).to.equal('SET_SELL_AMOUNT successful');
+      expect(body.message).to.equal('Not enough stocks for trigger');
       done();
     });
   });
@@ -417,9 +420,9 @@ describe("UNIT TEST: post '/set_sell_trigger' route", function () {
               }
     request.post(obj, function(error, response, body) {
       expect(response.statusCode).to.equal(200);
-      expect(body.success).to.equal(true);
+      expect(body.success).to.equal(false);
       expect(body.data).to.equal(null);
-      expect(body.message).to.equal('SET_SELL_TRIGGER successful');
+      expect(body.message).to.equal('Sell trigger not found');
       done();
     });
   });
@@ -439,9 +442,9 @@ describe("UNIT TEST: post '/cancel_set_sell' route", function () {
               }
     request.post(obj, function(error, response, body) {
       expect(response.statusCode).to.equal(200);
-      expect(body.success).to.equal(true);
+      expect(body.success).to.equal(false);
       expect(body.data).to.equal(null);
-      expect(body.message).to.equal('CANCEL_SET_SELL successful');
+      expect(body.message).to.equal('Sell trigger not found');
       done();
     });
   });
@@ -472,8 +475,8 @@ describe("UNIT TEST: post '/display_summary' route", function () {
 describe("UNIT TEST: for debugEvent module export function", function () {
   it('sanity test', function (done) {
       debugEvent(transactionNum=-1, action="DISPLAY_SUMMARY", username="nolan", stockSymbol=null, filename=null, funds=null, debugMessage="DEBUG MESSAGE", (err, result) => {
-      console.log(result)
-      console.log(err)
+      expect(result).to.be.an('object')
+      expect(err).to.equal(null);
       done();
     });
   });
@@ -483,8 +486,8 @@ describe("UNIT TEST: for debugEvent module export function", function () {
 describe("UNIT TEST: for systemEvent module export function", function () {
   it('sanity test', function (done) {
       systemEvent(transactionNum=-1, command="SET_BUY_AMOUNT", username="nolan", stockSymbol="ABC", filename=null, funds=100.00, (err, result) => {
-      console.log(result)
-      console.log(err)
+      expect(result).to.be.an('object')
+      expect(err).to.equal(null);
       done();
     });
   });
@@ -494,8 +497,8 @@ describe("UNIT TEST: for systemEvent module export function", function () {
 describe("UNIT TEST: for errorEvent module export function", function () {
   it('sanity test', function (done) {
       errorEvent(transactionNum=-1, command="BUY", username="nolan", stockSymbol="ABC", filename=null, funds=100.00, errorMessage="Error Message", (err, result) => {
-      console.log(result)
-      console.log(err)
+      expect(result).to.be.an('object')
+      expect(err).to.equal(null);
       done();
     });
   });
@@ -505,8 +508,8 @@ describe("UNIT TEST: for errorEvent module export function", function () {
 describe("UNIT TEST: for userCommand module export function", function () {
   it('sanity test', function (done) {
       accountTransaction(transactionNum=-2, action="add", username="nolan", funds=200.00, stockSymbol=null, (err, result) => {
-      console.log(result)
-      console.log(err)
+      expect(result).to.be.an('object')
+      expect(err).to.equal(null);
       done();
     });
   });
@@ -516,8 +519,8 @@ describe("UNIT TEST: for userCommand module export function", function () {
 describe("UNIT TEST: for userCommand module export function", function () {
   it('sanity test', function (done) {
       userCommand(transactionNum=-1, command="DISPLAY_SUMMARY", username="nolan", stockSymbol=null, filename=null, funds=null, (err, result) => {
-      console.log(result)
-      console.log(err)
+      expect(result).to.be.an('object')
+      expect(err).to.equal(null);
       done();
     });
   });
