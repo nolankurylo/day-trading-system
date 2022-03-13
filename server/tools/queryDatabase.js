@@ -17,6 +17,10 @@ module.exports = async (text, values, cb) => {
 
   await client.query(text, values, (err, result) => {
     client.release()
+    if(err){
+      console.log(text)
+      console.log(values)
+    }
     return cb(err, result)
   })
 }

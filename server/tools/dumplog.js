@@ -4,10 +4,10 @@ module.exports = async (username, cb) => {
     text = ''
     values = []
     if(username == null){
-        text = "select * from transactions;"
+        text = "select * from transactions order by timestamp asc;"
     } 
     else{
-        text = "select * from transactions where username=$1;"
+        text = "select * from transactions where username=$1 order by timestamp asc;"
         values = [username]
     } 
     query(text, values, async (err, result) => {

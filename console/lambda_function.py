@@ -2,11 +2,13 @@ import time
 import json
 import requests
 import os
-
+from requests.sessions import Session
+from threading import local
+from concurrent.futures import ThreadPoolExecutor
 
 API_URL = 'http://ec2-15-222-26-11.ca-central-1.compute.amazonaws.com'
 
-def command_breakdown(params):
+def send_request(transaction_num, params, session):
 
     cmd = params[0]
     args  = params[1:]
@@ -18,7 +20,8 @@ def command_breakdown(params):
 
         body = {
             'userid' : userid,
-            'amount' : amount
+            'nextTransactionNum': transaction_num,
+            'amount' : float(amount)
         }
 
         URL = API_URL + '/add'
@@ -34,6 +37,7 @@ def command_breakdown(params):
 
         body = {
             'userid' : userid,
+            'nextTransactionNum': transaction_num,
             'StockSymbol' : stockSymbol
         }
 
@@ -51,8 +55,9 @@ def command_breakdown(params):
 
         body = {
             'userid' : userid,
+            'nextTransactionNum': transaction_num,
             'StockSymbol' : stockSymbol,
-            'amount': amount
+            'amount': float(amount)
         }
 
         URL = API_URL + '/buy'
@@ -66,7 +71,8 @@ def command_breakdown(params):
         userid = args[0]
         
         body = {
-            'userid' : userid
+            'userid' : userid,
+            'nextTransactionNum': transaction_num,
         }
 
         URL = API_URL + '/commit_buy'
@@ -78,7 +84,8 @@ def command_breakdown(params):
         userid = args[0]
 
         body = {
-            'userid' : userid
+            'userid' : userid,
+            'nextTransactionNum': transaction_num,
         }
 
         URL = API_URL + '/cancel_buy'
@@ -94,8 +101,9 @@ def command_breakdown(params):
 
         body = {
             'userid' : userid,
+            'nextTransactionNum': transaction_num,
             'StockSymbol' : stockSymbol,
-            'amount': amount
+            'amount': float(amount)
         }
 
         URL = API_URL + '/sell'
@@ -108,7 +116,8 @@ def command_breakdown(params):
         userid = args[0]
 
         body = {
-            'userid' : userid   
+            'userid' : userid,
+            'nextTransactionNum': transaction_num,   
         }
 
         URL = API_URL + '/commit_sell'
@@ -122,7 +131,8 @@ def command_breakdown(params):
         userid = args[0]
 
         body = {
-            'userid' : userid   
+            'userid' : userid,
+            'nextTransactionNum': transaction_num,   
         }
 
         URL = API_URL + '/cancel_sell'
@@ -139,8 +149,9 @@ def command_breakdown(params):
 
         body = {
             'userid' : userid,
+            'nextTransactionNum': transaction_num,
             'StockSymbol' : stockSymbol,
-            'amount': amount
+            'amount': float(amount)
         }
 
         URL = API_URL + '/set_buy_amount'
@@ -156,13 +167,13 @@ def command_breakdown(params):
 
         body = {
             'userid' : userid,
+            'nextTransactionNum': transaction_num,
             'StockSymbol': stockSymbol
         }
 
         URL = API_URL + '/cancel_set_buy'
         
         r = requests.post(URL, json=body)
-        return (r.json())
         
 
     elif cmd == 'SET_BUY_TRIGGER':
@@ -173,8 +184,9 @@ def command_breakdown(params):
 
         body = {
             'userid' : userid,
+            'nextTransactionNum': transaction_num,
             'StockSymbol' : stockSymbol,
-            'amount': amount
+            'amount': float(amount)
         }
 
         URL = API_URL + '/set_buy_trigger'
@@ -191,8 +203,9 @@ def command_breakdown(params):
 
         body = {
             'userid' : userid,
+            'nextTransactionNum': transaction_num,
             'StockSymbol' : stockSymbol,
-            'amount': amount
+            'amount': float(amount)
         }
 
         URL = API_URL + '/set_sell_amount'
@@ -209,8 +222,9 @@ def command_breakdown(params):
 
         body = {
             'userid' : userid,
+            'nextTransactionNum': transaction_num,
             'StockSymbol' : stockSymbol,
-            'amount': amount
+            'amount': float(amount)
         }
 
         URL = API_URL + '/set_sell_trigger'
@@ -226,6 +240,7 @@ def command_breakdown(params):
 
         body = {
             'userid' : userid,
+            'nextTransactionNum': transaction_num,
             'StockSymbol' : stockSymbol
         }
 
@@ -242,6 +257,7 @@ def command_breakdown(params):
         
         body = {
             'userid' : userid,
+            'nextTransactionNum': transaction_num,
             'filename' : filename
         }
 
@@ -256,7 +272,8 @@ def command_breakdown(params):
         filename = args[0]
         
         body = {
-            'filename' : filename
+            'filename' : filename,
+            'nextTransactionNum': transaction_num
         }
 
         URL = API_URL + '/dumplog'
@@ -270,15 +287,27 @@ def command_breakdown(params):
         userid = args[0]
         
         body = {
-            'userid' : userid
+            'userid' : userid,
+            'nextTransactionNum': transaction_num,
         }
 
         URL = API_URL + '/display_summary'
         
-        r = requests.post(URL, json=body)
+        r = requests.post(URL, json=body)   
 
-        
+thread_local = local()
 
+def get_session() -> Session:
+    if not hasattr(thread_local,'session'):
+        thread_local.session = requests.Session()
+    return thread_local.session
+
+def process_users_commands(command_list):
+    session = get_session()
+    for command in command_list:
+        index,cmd_string = command.split()
+        params = cmd_string.split(',')
+        send_request(int(index.strip('[]')),params,session)
 
 ###################### MAIN ######################
 
@@ -286,7 +315,6 @@ def command_breakdown(params):
 
 def lambda_handler(event, context): 
     start = time.perf_counter()
-    print(start)
 
     file_name = event['file_path']
 
@@ -296,14 +324,30 @@ def lambda_handler(event, context):
     command_list = contents.splitlines()
     
 
-    for command in command_list:
-        index,cmd_string = command.split()
+    users_commands = {}
+    for command in command_list[:-1]:
+        index, cmd_string = command.split()
         params = cmd_string.split(',')
-        command_breakdown(params)
+        user = params[1]
+        if user not in users_commands:
+            users_commands[user] = [command]
+        else:
+            users_commands[user].append(command)
 
+
+    only_cmds = []
+    for user,cmds in users_commands.items():
+        # For each user give it a thread 
+        only_cmds.append(cmds)
+    with ThreadPoolExecutor(max_workers=10) as executor:
+        executor.map(process_users_commands,only_cmds)
+
+    #do dumplog last
+    process_users_commands([command_list[-1]])
     end = time.perf_counter()
-
+    
     return {
         'statusCode': 200,
         'body': json.dumps('Total Time: ' + str(end - start))
     }
+
