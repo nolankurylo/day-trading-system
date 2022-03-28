@@ -590,7 +590,7 @@ router.post("/dumplog",
   validate.dumplog(),
   (req, res) => {
   let filename = req.body.filename
-  filename = filename.split('.')[1]
+  filename = filename.split('/')[1]
   let transactionNum = req.body.nextTransactionNum
   // console.log("DUMPLOG: "+ transactionNum)
   userCommand(transactionNum=transactionNum, command="DUMPLOG", username=null, stockSymbol=null, filename=filename, funds=null, (err, result) => {
