@@ -107,6 +107,7 @@ module.exports = async (username, cb) => {
         });
         
         logStr = logStr.concat("</log>")
+        console.log("dump_log done")
         return cb(err, logStr)
       }
     })
