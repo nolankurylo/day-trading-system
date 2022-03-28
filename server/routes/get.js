@@ -39,17 +39,16 @@ Request Body Parameters
 */
 router.post("/quote", 
   validate.quote(),
-  utils.getNextTransactionNumber,
   async (req, res) => {
 
-  username = req.body.userid
-  transactionNum=req.body.nextTransactionNum
-  stockSymbol = req.body.StockSymbol
+  let username = req.body.userid
+  let transactionNum=req.body.nextTransactionNum
+  let stockSymbol = req.body.StockSymbol
 
-  returnedQuote = quote.getQuote(stockSymbol, username)
-  price = returnedQuote.Quoteprice
-  quoteServerTime = returnedQuote.timestamp
-  cryptoKey = returnedQuote.cryptokey
+  let returnedQuote = quote.getQuote(stockSymbol, username)
+  let price = returnedQuote.Quoteprice
+  let quoteServerTime = returnedQuote.timestamp
+  let cryptoKey = returnedQuote.cryptokey
 
   userCommand(transactionNum=transactionNum, command="QUOTE", username=username, stocksymbol=stockSymbol, filename=null, funds=null, (err, result) => {
     if (err) return dbFail.failSafe(err, res);
