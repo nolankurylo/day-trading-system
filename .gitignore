@@ -5,3 +5,4 @@ console/app.py
 console/ECRCommands.txt
 console/requirements.txt
 server/Logs/*.xml
+dumplog.xml
