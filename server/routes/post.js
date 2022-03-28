@@ -12,6 +12,7 @@ var quote = require('../quoteServer/quote')
 var dumplog = require('../tools/dumplog')
 const validate = require('../tools/validate');
 const AWS = require('aws-sdk');
+const fs = require('fs');
 
 
 /*
@@ -605,11 +606,13 @@ router.post("/dumplog",
       
       saved_file = filename+".xml"
 
+      const fileContent = fs.readFileSync("./dumplog.xml")
+
       // Setting up S3 upload parameters
       params = {
         Bucket: process.env.S3_BUCKET,
         Key: "dumplogs/" + saved_file, // File name you want to save as in S3
-        Body: result
+        Body: fileContent
       };
 
       s3 = new AWS.S3({
