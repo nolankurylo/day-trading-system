@@ -8,8 +8,8 @@ from concurrent.futures import ThreadPoolExecutor
 
 
 
-API_URL = 'http://localhost:3000'
-
+API_URL = 'http://ec2-15-222-26-11.ca-central-1.compute.amazonaws.com'
+# API_URL = 'http://localhost:3000'
 def send_request(transaction_num, params, session):
 
     cmd = params[0]
@@ -29,7 +29,6 @@ def send_request(transaction_num, params, session):
         URL = API_URL + '/add'
         
         r = requests.post(URL, json=body)
-        print(body)
         #session.post(URL, json=body)
 
         
@@ -48,7 +47,6 @@ def send_request(transaction_num, params, session):
         URL = API_URL + '/quote'
         
         r = requests.post(URL, json=body)
-        print(body)
         #session.post(URL, json=body)
 
         
@@ -69,7 +67,6 @@ def send_request(transaction_num, params, session):
         URL = API_URL + '/buy'
         
         r = requests.post(URL, json=body)
-        print(body)
         #session.post(URL, json=body)
 
         
@@ -86,7 +83,6 @@ def send_request(transaction_num, params, session):
         URL = API_URL + '/commit_buy'
         
         r = requests.post(URL, json=body)
-        print(body)
         #session.post(URL, json=body)
         
 
@@ -101,7 +97,6 @@ def send_request(transaction_num, params, session):
         URL = API_URL + '/cancel_buy'
 
         r = requests.post(URL, json=body)
-        print(body)
         #session.post(URL, json=body)
 
         
@@ -121,7 +116,6 @@ def send_request(transaction_num, params, session):
         URL = API_URL + '/sell'
         
         r = requests.post(URL, json=body)
-        print(body)
         #session.post(URL, json=body)
 
         
@@ -137,7 +131,6 @@ def send_request(transaction_num, params, session):
         URL = API_URL + '/commit_sell'
 
         r = requests.post(URL, json=body)
-        print(body)
         #session.post(URL, json=body)
 
         
@@ -154,7 +147,6 @@ def send_request(transaction_num, params, session):
         URL = API_URL + '/cancel_sell'
 
         r = requests.post(URL, json=body)
-        print(body)
         #session.post(URL, json=body)
 
         
@@ -175,7 +167,6 @@ def send_request(transaction_num, params, session):
         URL = API_URL + '/set_buy_amount'
         
         r = requests.post(URL, json=body)
-        print(body)
         #session.post(URL, json=body)
 
         
@@ -194,7 +185,6 @@ def send_request(transaction_num, params, session):
         URL = API_URL + '/cancel_set_buy'
         
         r = requests.post(URL, json=body)
-        print(body)
         #session.post(URL, json=body)
         
 
@@ -214,7 +204,6 @@ def send_request(transaction_num, params, session):
         URL = API_URL + '/set_buy_trigger'
         
         r = requests.post(URL, json=body)
-        print(body)
         #session.post(URL, json=body)
 
         
@@ -235,7 +224,6 @@ def send_request(transaction_num, params, session):
         URL = API_URL + '/set_sell_amount'
         
         r = requests.post(URL, json=body)
-        print(body)
         #session.post(URL, json=body)
 
         
@@ -256,7 +244,6 @@ def send_request(transaction_num, params, session):
         URL = API_URL + '/set_sell_trigger'
         
         r = requests.post(URL, json=body)
-        print(body)
         #session.post(URL, json=body)
 
         
@@ -275,7 +262,6 @@ def send_request(transaction_num, params, session):
         URL = API_URL + '/cancel_set_sell'
         
         r = requests.post(URL, json=body)
-        print(body)
         #session.post(URL, json=body)
 
         
@@ -294,7 +280,6 @@ def send_request(transaction_num, params, session):
         URL = API_URL + '/user_dumplog'
         
         r = requests.post(URL, json=body)
-        print(body)
         #session.post(URL, json=body)
 
         
@@ -309,9 +294,7 @@ def send_request(transaction_num, params, session):
         }
 
         URL = API_URL + '/dumplog'
-        
         r = requests.post(URL, json=body)
-        print(body)
         #session.post(URL, json=body)
 
         
@@ -328,7 +311,6 @@ def send_request(transaction_num, params, session):
         URL = API_URL + '/display_summary'
         
         r = requests.post(URL, json=body)
-        print(body)
         #session.post(URL, json=body)
 
         
@@ -346,8 +328,10 @@ def get_session() -> Session:
 def process_users_commands(command_list):
     session = get_session()
     for command in command_list:
-        print(command)
+        
         index,cmd_string = command.split()
+        if (int(index.strip('[]')) % 10 == 0):
+            print(command)
         params = cmd_string.split(',')
         send_request(int(index.strip('[]')),params,session)
 
@@ -359,8 +343,8 @@ def process_users_commands(command_list):
 def lambda_handler(): 
     start = time.perf_counter()
 
-    file_name = "workloads/10userWorkLoad.txt"
-
+    #file_name = "workloads/final_workload_2019.txt"
+    file_name = "workloads/100User_testWorkLoad.txt"
     workload_file = open(file_name, 'r')
     
     contents = workload_file.read()
@@ -382,10 +366,11 @@ def lambda_handler():
     for user,cmds in users_commands.items():
         # For each user give it a thread 
         only_cmds.append(cmds)
-    print(len(only_cmds))
-    with ThreadPoolExecutor(max_workers=10) as executor:
+
+    print("Num users: " + str(len(users_commands)))
+    with ThreadPoolExecutor(max_workers=100) as executor:
         executor.map(process_users_commands,only_cmds)
-    print([command_list[-1]])
+    print('Dumplog')
     process_users_commands([command_list[-1]])
     end = time.perf_counter()
     print('Total Time: ' + str(end - start))

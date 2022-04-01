@@ -105,6 +105,7 @@ module.exports = async (username, cb) => {
       });
       
       fs.appendFileSync('./dumplog.xml', "</log>");
+      console.log("dump done")
       return cb(err, "<?xml version='1.0'?>\n<log>\n</log>")
 
     })
