@@ -32,7 +32,7 @@ export default function SignUp (props) {
         <div className='SignUp'>
             <Modal.Dialog className='SignUpCard'>
                 <Modal.Header>
-                    <Modal.Title>Day TradingSignUp</Modal.Title>
+                    <Modal.Title>Day Trading Sign Up</Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
                     <InputGroup className="mb-3">

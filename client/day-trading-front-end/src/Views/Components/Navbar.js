@@ -6,6 +6,8 @@ import UserPool from '../UserPool';
 
 export default function NavBar (props) {
 
+  const { getSession, logout } = useContext(AccountContext);
+
   return (
     <div>
         <Navbar className='navbar-main'>
@@ -18,9 +20,9 @@ export default function NavBar (props) {
             <Link to='/sell' className='navitem'>
               Sell
             </Link>
-            <Link to='/settings' className='navitem'>
-              Settings
-             </Link>
+            <Button onClick={logout} className='logoutButton navitem'>
+              Logout
+             </Button>
         </Navbar>
     </div>
   );

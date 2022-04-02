@@ -70,6 +70,11 @@
   text-decoration: None;
 }
 
+.logoutButton, .logoutButton:active {
+  background-color: transparent !important;
+  border: none !important;
+}
+
 .navitem:active, .navitem:hover {
   color: white !important;
   text-decoration: underline;
