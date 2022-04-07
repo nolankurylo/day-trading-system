@@ -14,17 +14,6 @@ export default function Settings (props) {
 
   console.log(user)
 
-  // if (!user){
-  //   window.location.reload('/login')
-  // }
-
-  // useEffect(() => {
-  //   getSession().then((session) => {
-  //     console.log("Session: ", session);
-  //     setStatus(true);
-  //   });
-  // }, []);
-
   return (
 
     <div className='settings-container'>

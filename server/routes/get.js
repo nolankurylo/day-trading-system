@@ -24,7 +24,7 @@ none
 */
 router.get("/test",  (req, res) => {
 
-  query("select * from users where userid = 'liamf'",[],async (err, result) => {
+  query("SELECT * from transactions where console != 'console'",[],async (err, result) => {
     if (err) return dbFail.failSafe(err, res);
     return res.send(result);
   })
