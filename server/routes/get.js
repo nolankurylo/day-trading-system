@@ -24,7 +24,7 @@ none
 */
 router.get("/test",  (req, res) => {
 
-  query("SELECT * from transactions where console != 'console'",[],async (err, result) => {
+  query("SELECT * from users where role != 'console'",[],async (err, result) => {
     if (err) return dbFail.failSafe(err, res);
     return res.send(result);
   })
