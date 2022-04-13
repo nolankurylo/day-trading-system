@@ -15,6 +15,58 @@ const AWS = require('aws-sdk');
 const fs = require('fs');
 
 
+
+
+
+/*
+Request Body Parameters
+@param userid
+@param amount
+*/
+router.post("/register", 
+  // validate.register(),
+  (req, res) => {
+
+  text = `INSERT INTO users (userid, user_email, user_password, role) VALUES ($1, $2, $3, 'guest')ON CONFLICT DO NOTHING;`
+  values = [req.body.username, req.body.email, req.body.password]
+  query(text, values, async (err, result) => {
+    if (err) return dbFail.failSafe(err, res);
+    return res.send({"success": true, "data": null, "message": "Registration successful"});
+  })
+});
+
+/*
+Request Body Parameters
+@param userid
+*/
+router.post("/get_transactions",  (req, res) => {
+  
+  text = `SELECT * from transactions where username = $1`;
+  values = [req.body.username]
+
+  query(text, values, async (err, result) => {
+    if (err) return dbFail.failSafe(err, res);
+    return res.send(result);
+  })
+  
+});
+
+/*
+Request Body Parameters
+@param userid
+*/
+router.post("/get_initial_funds",  (req, res) => {
+  
+  text = `SELECT * from user_funds where userid = $1`;
+  values = [req.body.username]
+
+  query(text, values, async (err, result) => {
+    if (err) return dbFail.failSafe(err, res);
+    return res.send(result);
+  })
+  
+});
+
 /*
 Request Body Parameters
 @param userid

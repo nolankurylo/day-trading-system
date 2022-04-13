@@ -6,8 +6,8 @@ import Login from './Views/Components/Login';
 import SignUp from "./Views/Components/SignUp";
 import Buy from "./Views/Components/Buy";
 import Sell from "./Views/Components/Sell"
+import Home from "./Views/Components/Home"
 import { Account } from './Views/Components/Account';
-import AccountSummary from './Views/Components/AccountSummary';
 import Settings from './Views/Components/Settings';
 import reportWebVitals from './test/reportWebVitals';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
@@ -22,7 +22,6 @@ ReactDOM.render(
           <Route path="/login" element={<Login />}/>
           <Route path='/buy' element={<Buy />} />
           <Route path='/sell' element={<Sell />}/>
-          <Route path='/account_summary' element={<AccountSummary />}/>
           <Route path='/settings' element={<Settings />} />
         </Routes>
       </Account>

@@ -3,9 +3,11 @@ import {Button, FormControl, InputGroup, Modal} from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import UserPool from '../UserPool';
 import { CognitoUserAttribute } from 'amazon-cognito-identity-js';
+import axios from 'axios'
 
 export default function SignUp (props) {
 
+    const apiEndpoint = 'http://localhost:3000'
 
     const [email, setEmail] = useState("");
     const [username, setUsername] = useState("");
@@ -21,10 +23,24 @@ export default function SignUp (props) {
         event.preventDefault();
 
         UserPool.signUp(username, password, [emailAttribute], null, (err, data) => {
-        if (err) {
-            console.error(err);
-        }
-        console.log(data);
+            if (err) {
+                console.error(err);
+                alert(err)
+                return
+            }
+
+            // Input into DATABASE 
+
+            const post_req = { 'username': username, 'email': email, 'password': password}
+
+            axios.post(apiEndpoint + '/register', post_req)
+                .then(res => {
+                    const result = res.data;
+                    console.log(result);
+                })
+
+            window.location.href='/login'
+
         });
     };
 

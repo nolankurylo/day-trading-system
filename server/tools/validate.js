@@ -11,6 +11,19 @@ joi_objects = {
 
 e = module.exports
 
+e.register = () => {  
+    return (req, res, next) => {
+        schema = Joi.object().keys({
+            username: joi_objects.userid,
+        }); 
+        result = schema.validate(req.body);
+        if (result.error){
+            return res.status(401).send({ message: result.error.details[0].message })
+        } 
+        next()
+    }
+}
+
 e.add = () => {  
     return (req, res, next) => {
         schema = Joi.object().keys({

@@ -11,7 +11,7 @@ export default function NavBar (props) {
   return (
     <div>
         <Navbar className='navbar-main'>
-            <Link to='/account_summary' className='navitem'>
+            <Link to='/' className='navitem'>
               Account Summary
             </Link>
             <Link to='/buy' className='navitem'>
