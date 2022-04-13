@@ -8,8 +8,8 @@ from concurrent.futures import ThreadPoolExecutor
 
 
 
-API_URL = 'http://ec2-15-222-26-11.ca-central-1.compute.amazonaws.com'
-# API_URL = 'http://localhost:3000'
+# API_URL = 'http://ec2-15-222-26-11.ca-central-1.compute.amazonaws.com'
+API_URL = 'http://localhost:3000'
 def send_request(transaction_num, params, session):
 
     cmd = params[0]
@@ -328,10 +328,8 @@ def get_session() -> Session:
 def process_users_commands(command_list):
     session = get_session()
     for command in command_list:
-        
         index,cmd_string = command.split()
-        if (int(index.strip('[]')) % 10 == 0):
-            print(command)
+        print(command)
         params = cmd_string.split(',')
         send_request(int(index.strip('[]')),params,session)
 
@@ -343,12 +341,13 @@ def process_users_commands(command_list):
 def lambda_handler(): 
     start = time.perf_counter()
 
-    #file_name = "workloads/final_workload_2019.txt"
-    file_name = "workloads/100User_testWorkLoad.txt"
+    file_name = "workloads/final_workload_2019.txt"
+    # file_name = "workloads/1command.txt"
     workload_file = open(file_name, 'r')
     
     contents = workload_file.read()
     command_list = contents.splitlines()
+
     
 
     # parsing - split all the same user commands into their own array for asynchronous processing
@@ -366,12 +365,12 @@ def lambda_handler():
     for user,cmds in users_commands.items():
         # For each user give it a thread 
         only_cmds.append(cmds)
-
+    
     print("Num users: " + str(len(users_commands)))
-    with ThreadPoolExecutor(max_workers=100) as executor:
+    with ThreadPoolExecutor(max_workers=8) as executor:
         executor.map(process_users_commands,only_cmds)
-    print('Dumplog')
-    process_users_commands([command_list[-1]])
+    # print('Dumplog')
+    # process_users_commands([command_list[-1]])
     end = time.perf_counter()
     print('Total Time: ' + str(end - start))
     return {
