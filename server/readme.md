@@ -1,4 +1,5 @@
-ECRCommand:
+To push local server instance to AWS use the following ECRCommands:
+
   1. Login to AWS:
   aws configure
 
