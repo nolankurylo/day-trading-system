@@ -6,16 +6,84 @@
 
 .Login {
   padding-top: 15%;
+  background: linear-gradient(90deg, rgba(2,0,36,1) 0%, rgba(9,9,121,1) 35%, rgba(0,212,255,1) 100%);
+  height: 100vh;
 }
 
 .LoginCard {
   border-radius: 5px;
   box-shadow: 1px 1px 7px #000000;
+  background: linear-gradient(90deg, rgba(2,0,36,1) 0%, rgba(9,9,121,1) 35%, rgba(0,212,255,1) 100%);
+}
+
+.SignUp {
+  padding-top: 15%;
+  background: linear-gradient(90deg, rgba(2,0,36,1) 0%, rgba(9,9,121,1) 35%, rgba(0,212,255,1) 100%);
+  height: 100vh;
+}
+
+.SignUpCard {
+  border-radius: 5px;
+  box-shadow: 1px 1px 7px #000000;
+  background: linear-gradient(90deg, rgba(2,0,36,1) 0%, rgba(9,9,121,1) 35%, rgba(0,212,255,1) 100%);
 }
 
 .App-logo {
   height: 40vmin;
   pointer-events: none;
+}
+
+.navbar-main {
+  max-width: 100%;
+  height: 100px;
+  background-color: rgb(61, 61, 61);
+  align-content: left;
+}
+
+.buy-container{
+  height: 1000px;
+  font-size: 50px;
+}
+
+.sell-container{
+  height: 100%;
+  font-size: 50px;
+}
+
+.as-container{
+  height: 100%;
+  font-size: 50px;
+}
+
+.settings-container{
+  height: 100%;
+  font-size: 50px;
+}
+
+.navitem {
+  width: 15%;
+  margin-right: 20px;
+  margin-left: 50px;
+  font-size: 18px;
+  color: white !important;
+  font-family:'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+  text-decoration: None;
+}
+
+.logoutButton, .logoutButton:active {
+  background-color: transparent !important;
+  border: none !important;
+}
+
+.navitem:active, .navitem:hover {
+  color: white !important;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.register-link, .register-link:hover {
+  color: white;
+  text-decoration: none !important;
 }
 
 @media (prefers-reduced-motion: no-preference) {

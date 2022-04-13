@@ -31,7 +31,7 @@ describe("UNIT TEST: post '/quote' route", function () {
   it('TEST 200', function (done) {
     var obj = { method: 'POST',
                 url: base_url + "/quote", 
-                json: { userid: "nolan", StockSymbol: "ABC" }
+                json: { userid: "nolan", StockSymbol: "ABC", nextTransactionNum: 999999999 }
               }
     request.post(obj, function(error, response, body) {
       expect(response.statusCode).to.equal(200);
@@ -46,7 +46,7 @@ describe("UNIT TEST: post '/quote' route", function () {
   it('TEST 401: no StockSymbol', function (done) {
     var obj = { method: 'POST',
                 url: base_url + "/quote", 
-                json: { userid: "nolan" }
+                json: { userid: "nolan", nextTransactionNum: 999999999 }
               }
     request.post(obj, function(error, response, body) {
       expect(response.statusCode).to.equal(401);
@@ -58,7 +58,7 @@ describe("UNIT TEST: post '/quote' route", function () {
   it('TEST 401: no userid', function (done) {
     var obj = { method: 'POST',
                 url: base_url + "/quote", 
-                json: { StockSymbol: "nolan" }
+                json: { StockSymbol: "nolan", nextTransactionNum: 999999999 }
               }
     request.post(obj, function(error, response, body) {
       expect(response.statusCode).to.equal(401);
@@ -77,7 +77,7 @@ describe("UNIT TEST: post '/add' route", function () {
   it('TEST 200', function (done) {
     var obj = { method: 'POST',
                 url: base_url + "/add", 
-                json: { userid: "nolan", amount: 10000.00 }
+                json: { userid: "nolan", amount: 10000.00, nextTransactionNum: 999999999 }
               }
     request.post(obj, function(error, response, body) {
       expect(response.statusCode).to.equal(200);
@@ -91,7 +91,7 @@ describe("UNIT TEST: post '/add' route", function () {
   it('TEST 401: no amount', function (done) {
     var obj = { method: 'POST',
                 url: base_url + "/add", 
-                json: { userid: "nolan" }
+                json: { userid: "nolan", nextTransactionNum: 999999999 }
               }
     request.post(obj, function(error, response, body) {
       expect(response.statusCode).to.equal(401);
@@ -103,7 +103,7 @@ describe("UNIT TEST: post '/add' route", function () {
   it('TEST 401: no userid', function (done) {
     var obj = { method: 'POST',
                 url: base_url + "/add", 
-                json: { amount: 10000.00 }
+                json: { amount: 10000.00, nextTransactionNum: 999999999 }
               }
     request.post(obj, function(error, response, body) {
       expect(response.statusCode).to.equal(401);
@@ -124,7 +124,7 @@ describe("UNIT TEST: post '/buy' route", function () {
   it('TEST 200', function (done) {
     var obj = { method: 'POST',
                 url: base_url + "/buy", 
-                json: { userid: "nolan", StockSymbol: "ABC", amount: 2000.00 }
+                json: { userid: "nolan", StockSymbol: "ABC", amount: 2000.00, nextTransactionNum: 999999999 }
               }
     request.post(obj, function(error, response, body) {
       expect(response.statusCode).to.equal(200);
@@ -139,7 +139,7 @@ describe("UNIT TEST: post '/buy' route", function () {
   it('TEST 200', function (done) {
     var obj = { method: 'POST',
                 url: base_url + "/commit_buy", 
-                json: { userid: "nolan" }
+                json: { userid: "nolan", nextTransactionNum: 999999999 }
               }
     request.post(obj, function(error, response, body) {
       expect(response.statusCode).to.equal(200);
@@ -150,7 +150,7 @@ describe("UNIT TEST: post '/buy' route", function () {
   it('TEST 401: no amount', function (done) {
     var obj = { method: 'POST',
                 url: base_url + "/buy", 
-                json: { userid: "nolan", StockSymbol: "ABC" }
+                json: { userid: "nolan", StockSymbol: "ABC", nextTransactionNum: 999999999 }
               }
     request.post(obj, function(error, response, body) {
       expect(response.statusCode).to.equal(401);
@@ -162,7 +162,7 @@ describe("UNIT TEST: post '/buy' route", function () {
   it('TEST 401: no StockSymbol', function (done) {
     var obj = { method: 'POST',
                 url: base_url + "/buy", 
-                json: { userid: "nolan", amount: 100.00 }
+                json: { userid: "nolan", amount: 100.00, nextTransactionNum: 999999999 }
               }
     request.post(obj, function(error, response, body) {
       expect(response.statusCode).to.equal(401);
@@ -174,7 +174,7 @@ describe("UNIT TEST: post '/buy' route", function () {
   it('TEST 401: no userid', function (done) {
     var obj = { method: 'POST',
                 url: base_url + "/buy", 
-                json: { StockSymbol: "ABC", amount: 100.00 }
+                json: { StockSymbol: "ABC", amount: 100.00, nextTransactionNum: 999999999 }
               }
     request.post(obj, function(error, response, body) {
       expect(response.statusCode).to.equal(401);
@@ -193,7 +193,7 @@ describe("UNIT TEST: post '/cancel_buy' route", function () {
   it('TEST 200', function (done) {
     var obj = { method: 'POST',
                 url: base_url + "/cancel_buy", 
-                json: { userid: "nolan" }
+                json: { userid: "nolan", nextTransactionNum: 999999999 }
               }
     request.post(obj, function(error, response, body) {
       expect(response.statusCode).to.equal(200);
@@ -216,7 +216,7 @@ describe("UNIT TEST: post '/sell' route", function () {
   it('TEST 200', function (done) {
     var obj = { method: 'POST',
                 url: base_url + "/sell", 
-                json: { userid: "nolan", StockSymbol: "ABC", amount: 2 }
+                json: { userid: "nolan", StockSymbol: "ABC", amount: 2, nextTransactionNum: 999999999 }
               }
     request.post(obj, function(error, response, body) {
       expect(response.statusCode).to.equal(200);
@@ -238,7 +238,7 @@ describe("UNIT TEST: post '/commit_sell' route", function () {
   it('TEST 200', function (done) {
     var obj = { method: 'POST',
                 url: base_url + "/commit_sell", 
-                json: { userid: "nolan" }
+                json: { userid: "nolan", nextTransactionNum: 999999999 }
               }
     request.post(obj, function(error, response, body) {
       expect(response.statusCode).to.equal(200);
@@ -259,7 +259,7 @@ describe("UNIT TEST: post '/cancel_sell' route", function () {
   it('TEST 200', function (done) {
     var obj = { method: 'POST',
                 url: base_url + "/cancel_sell", 
-                json: { userid: "nolan" }
+                json: { userid: "nolan", nextTransactionNum: 999999999 }
               }
     request.post(obj, function(error, response, body) {
       expect(response.statusCode).to.equal(200);
@@ -282,7 +282,7 @@ describe("UNIT TEST: post '/set_buy_amount' route", function () {
   it('TEST 200', function (done) {
     var obj = { method: 'POST',
                 url: base_url + "/set_buy_amount", 
-                json: { userid: "nolan", StockSymbol: "ABC", amount: 200.00 }
+                json: { userid: "nolan", StockSymbol: "ABC", amount: 200.00, nextTransactionNum: 999999999 }
               }
     request.post(obj, function(error, response, body) {
       expect(response.statusCode).to.equal(200);
@@ -305,7 +305,7 @@ describe("UNIT TEST: post '/set_buy_trigger' route", function () {
   it('TEST 200', function (done) {
     var obj = { method: 'POST',
                 url: base_url + "/set_buy_trigger", 
-                json: { userid: "nolan", StockSymbol: "ABC", amount: 2 }
+                json: { userid: "nolan", StockSymbol: "ABC", amount: 2, nextTransactionNum: 999999999 }
               }
     request.post(obj, function(error, response, body) {
       expect(response.statusCode).to.equal(200);
@@ -327,7 +327,7 @@ describe("UNIT TEST: post '/cancel_set_buy' route", function () {
   it('TEST 200', function (done) {
     var obj = { method: 'POST',
                 url: base_url + "/cancel_set_buy", 
-                json: { userid: "nolan", StockSymbol: "ABC" }
+                json: { userid: "nolan", StockSymbol: "ABC", nextTransactionNum: 999999999 }
               }
     request.post(obj, function(error, response, body) {
       expect(response.statusCode).to.equal(200);
@@ -348,7 +348,7 @@ describe("UNIT TEST: post '/dumplog' route", function () {
   it('TEST 200', function (done) {
     var obj = { method: 'POST',
                 url: base_url + "/dumplog", 
-                json: { filename: "dump-test" }
+                json: { filename: "dump-test", nextTransactionNum: 999999999 }
               }
     request.post(obj, function(error, response, body) {
       expect(response.statusCode).to.equal(200);
@@ -370,7 +370,7 @@ describe("UNIT TEST: post '/user_dumplog' route", function () {
   it('TEST 200', function (done) {
     var obj = { method: 'POST',
                 url: base_url + "/user_dumplog", 
-                json: { filename: "dump-user-test", userid: "nolan" }
+                json: { filename: "dump-user-test", userid: "nolan", nextTransactionNum: 999999999 }
               }
     request.post(obj, function(error, response, body) {
       expect(response.statusCode).to.equal(200);
@@ -393,7 +393,7 @@ describe("UNIT TEST: post '/set_sell_amount' route", function () {
   it('TEST 200', function (done) {
     var obj = { method: 'POST',
                 url: base_url + "/set_sell_amount", 
-                json: { userid: "nolan", StockSymbol: "ABC", amount: 200.00 }
+                json: { userid: "nolan", StockSymbol: "ABC", amount: 200.00, nextTransactionNum: 999999999 }
               }
     request.post(obj, function(error, response, body) {
       expect(response.statusCode).to.equal(200);
@@ -416,7 +416,7 @@ describe("UNIT TEST: post '/set_sell_trigger' route", function () {
   it('TEST 200', function (done) {
     var obj = { method: 'POST',
                 url: base_url + "/set_sell_trigger", 
-                json: { userid: "nolan", StockSymbol: "ABC", amount: 200.00 }
+                json: { userid: "nolan", StockSymbol: "ABC", amount: 200.00, nextTransactionNum: 999999999 }
               }
     request.post(obj, function(error, response, body) {
       expect(response.statusCode).to.equal(200);
@@ -438,7 +438,7 @@ describe("UNIT TEST: post '/cancel_set_sell' route", function () {
   it('TEST 200', function (done) {
     var obj = { method: 'POST',
                 url: base_url + "/cancel_set_sell", 
-                json: { userid: "nolan", StockSymbol: "ABC" }
+                json: { userid: "nolan", StockSymbol: "ABC", nextTransactionNum: 999999999 }
               }
     request.post(obj, function(error, response, body) {
       expect(response.statusCode).to.equal(200);
@@ -459,7 +459,7 @@ describe("UNIT TEST: post '/display_summary' route", function () {
   it('TEST 200', function (done) {
     var obj = { method: 'POST',
                 url: base_url + "/display_summary", 
-                json: { userid: "nolan" }
+                json: { userid: "nolan", nextTransactionNum: 999999999 }
               }
     request.post(obj, function(error, response, body) {
       expect(response.statusCode).to.equal(200);
