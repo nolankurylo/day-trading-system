@@ -1,3 +1,5 @@
+This is the server and back-end section of the code. 
+
 To push local server instance to AWS use the following ECRCommands:
 
   1. Login to AWS:
