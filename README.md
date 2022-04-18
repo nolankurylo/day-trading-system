@@ -4,4 +4,5 @@ A full-stack application that illustrates a distributed system utilizing horizon
 
 The frontend client and backend web server exist as EC2 instances. However, the backend is horizontally scaled by an auto-scaling group with a load balancer to direct traffic in front. The admin console is deployed as a Lambda function for its lightweight abilities. The database is scaled vertically by manually increasing the database's resources. A secondary database is stored in an S3 bucket in the case that the primary goes down, achieving fault tolerance. Once the server generates a log file for a workload, it is stored in an S3 bucket. In terms of security, a Virtual Private Cloud (VPC) was set up to isolate the distributed system. Additionally, Cognito is used for authentication, and Secrets Manager is used for storing environment variables. The following diagram demonstrates the AWS configuration.
 
-![image](https://user-images.githubusercontent.com/44009838/163740359-077ca26f-c296-4127-af45-a6927ff22ec5.png)
+![DevPlatform (1)](https://user-images.githubusercontent.com/44009838/163740680-bdc665cb-1c62-47fc-a075-b25ff76ff6ca.jpg)
+
