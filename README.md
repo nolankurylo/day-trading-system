@@ -1,2 +1,7 @@
-# day-trading-system-server
-SENG 468 Final Course Project Backend
+# Day Trading System
+
+A full-stack application that illustrates a distributed system utilizing horizontal and vertical scalability. Via AWS, the distributed system is deployed to various microservices. The application is designed to allow users to create an account, log in and buy & sell stocks. Users can set buy and sell triggers based on the share prices of stocks. The web server uses a custom-made stock server that generates quotes of fake stocks algorithmically. The web server communicates with a PostgreSQL database. Furthermore, an admin console application is designed to execute workloads to test the scalability of the system. These workloads are executed in parallel for multiple users at a time. The goal of the application is to generate and return a log file for a given workload.
+
+The frontend client and backend web server exist as EC2 instances. However, the backend is horizontally scaled by an auto-scaling group with a load balancer to direct traffic in front. The admin console is deployed as a Lambda function for its lightweight abilities. The database is scaled vertically by manually increasing the database's resources. A secondary database is stored in an S3 bucket in the case that the primary goes down, achieving fault tolerance. Once the server generates a log file for a workload, it is stored in an S3 bucket. In terms of security, a Virtual Private Cloud (VPC) was set up to isolate the distributed system. Additionally, Cognito is used for authentication, and Secrets Manager is used for storing environment variables. The following diagram demonstrates the AWS configuration.
+
+![image](https://user-images.githubusercontent.com/44009838/163740359-077ca26f-c296-4127-af45-a6927ff22ec5.png)
